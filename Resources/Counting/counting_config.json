@@ -1,0 +1,70 @@
+{
+  "background": {
+    "file": "counting_Bg.png",
+    "position": { "x": 512, "y": 684 },
+    "clouds": [
+      {
+        "file": "FTS_clouds.png",
+        "start": { "x": -530, "y": 708 },
+        "end": { "x": 2650, "y": 718 },
+        "duration": 40
+      },
+      {
+        "file": "FTS_clouds.png",
+        "start": { "x": 2650, "y": 702 },
+        "end": { "x": -500, "y": 712 },
+        "duration": 45
+      }
+    ]
+  },
+
+  "character": {
+    "stool": { "file": "Stool.png", "pos": { "x": 174.36, "y": 76.8 }, "scale": 0.9 },
+    "shadow": { "file": "Char_shadow.png", "pos": { "x": 191.19, "y": 220.8 }, "scale": 0.4 },
+    "sprite": { "file": "charOwl.png", "pos": { "x": 186.38, "y": 343.2 }, "scale": 1.0 },
+    "eyeBlink": {
+      "frames": ["charOwl.png", "charOwlEB.png"],
+      "blinkDelay": 0.2,
+      "minInterval": 3.0,
+      "maxInterval": 10.0
+    }
+  },
+  "slideDoor": {
+      "openDuration": 1.0,
+      "closeDuration": 1.0,
+      "minDelayBetween": 1.0,
+      "maxDelayBetween": 1.5
+  }
+  "objects": {
+    "totalObjects": 10,
+    "objectPrefix": "ToyShop_Item",
+    "objectSizes": {
+      "1": { "width": 165, "height": 165 },
+      "2": { "width": 135, "height": 135 },
+      "10": { "width": 75, "height": 75 }
+    }
+  },
+
+  "answerBoxes": {
+    "positions": [
+      { "x": 482.19, "y": 232.8 },
+      { "x": 905.46, "y": 232.8 },
+      { "x": 693.82, "y": 231.6 }
+    ],
+    "font": "ChalkBoard.ttf",
+    "fontSize": 120
+  },
+
+  "timing": {
+    "entryDelay": 0.9,
+    "entrySoundDelay": 1.2,
+    "questionMarkBounceInterval": 5.0,
+    "idealEffectInterval": 4.0
+  },
+
+  "sounds": {
+    "tap": "tap.mp3",
+    "yay": "yay.mp3",
+    "appreciationRange": [2, 6]
+  }
+}

@@ -1,0 +1,12 @@
+
+# Ignore Android build artifacts
+proj.android/app/.cxx/
+proj.android/app/build/
+*.a
+*.so
+*.apk
+*.jar
+*.class
+*.iml
+.gradle/
+build/
