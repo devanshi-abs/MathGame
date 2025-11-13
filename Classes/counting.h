@@ -73,9 +73,10 @@ public:
     Label *lblNumbers[20];
     
     void setObjScale(cocos2d::Size ScaleToSize,Node *sprtObj);
-    cocos2d::Point PosObj[20][30];
-    cocos2d::Size objSize[20];
+//    cocos2d::Point PosObj[20][30];
+//    cocos2d::Size objSize[20];
     void genRandomObj();
+    void showObjects();
     
     //=====Create Sprite Functions=====//
     void createBackgroundSprite();

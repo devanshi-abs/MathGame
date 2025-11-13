@@ -276,23 +276,8 @@ void counting::genRandomObj()
     
     countGenNo = RandomHelper::random_int(1,10);
     
-    for (int i=1;i<=totalCntNo;i++)
-    {
-        spriteObjects[i]->setPosition(OUTOFSCREEN);
-        spriteObjects[i]->setScale(0);
-        spriteObjects[i]->setRotation(0);
-    }
+    showObjects();
     
-    int rndmToy=0;
-    rndmToy=RandomHelper::random_int(1, totalObj);
-
-    for (int i=1;i<=countGenNo;i++)
-    {
-        spriteObjects[i]->setTexture(__String::createWithFormat("ToyShop_Item%d.png",rndmToy)->getCString());
-        spriteObjects[i]->setPosition(PosObj[countGenNo][i]);
-        spriteObjects[i]->setVisible(false);
-        setObjScale(objSize[countGenNo],spriteObjects[i]);
-    }
     loopObjNo=0;
     for (int i = 1; i <= countGenNo; i++)
     {
@@ -391,6 +376,59 @@ void counting::showOptionBox()
     
     schedule(SEL_SCHEDULE(&counting::idealEffectAnsOption), 5.5, -1, 3);
 
+}
+void counting::showObjects()
+{
+    for (int i=1;i<=totalCntNo;i++)
+    {
+        spriteObjects[i]->setPosition(OUTOFSCREEN);
+        spriteObjects[i]->setScale(0);
+        spriteObjects[i]->setRotation(0);
+    }
+    
+    // --- Fetch size for this count number (countGenNo) ---
+        std::string sizeKey = StringUtils::format("objects.objectSizes.%d", countGenNo);
+        rapidjson::Value* sizeVal = cfg->getValueForPath(sizeKey);
+        Size curObjSize(100, 100); // default
+
+        if (sizeVal && sizeVal->IsObject())
+        {
+            float w = (*sizeVal)["width"].GetFloat();
+            float h = (*sizeVal)["height"].GetFloat();
+            curObjSize = Size(w, h);
+        }
+    
+    
+    int rndmToy=0;
+    rndmToy=RandomHelper::random_int(1, totalObj);
+
+    // --- Fetch positions for this count number ---
+    std::string posKey = StringUtils::format("objects.positions.%d", countGenNo);
+    const rapidjson::Value& posArr = cfg->getArray(posKey);
+
+    if (posArr.IsArray())
+    {
+        for (rapidjson::SizeType i = 0; i < posArr.Size() && i < countGenNo; ++i)
+        {
+            const rapidjson::Value& posVal = posArr[i];
+            if (posVal.HasMember("x") && posVal.HasMember("y"))
+            {
+                Vec2 pos(posVal["x"].GetFloat(), posVal["y"].GetFloat());
+
+                spriteObjects[i + 1]->setTexture(
+                    StringUtils::format("ToyShop_Item%d.png", rndmToy)
+                );
+                spriteObjects[i + 1]->setPosition(pos);
+                spriteObjects[i + 1]->setVisible(false);
+
+                setObjScale(curObjSize, spriteObjects[i + 1]);
+            }
+        }
+    }
+    else
+    {
+        CCLOG("⚠️ Missing positions for countGenNo = %d in config!", countGenNo);
+    }
 }
 #pragma mark - "Create Sprite Functions"
 void counting::createBackgroundSprite()
@@ -522,82 +560,6 @@ void counting::createAnsOptionSprite()
 }
 void counting::createCountingObjects()
 {
-    PosObj[1][1]=(Vec2(594.02,486.00));
-    
-    PosObj[2][1]=(Vec2(477.38,562.80));
-    PosObj[2][2]=(Vec2(663.76,452.40));
-    
-    PosObj[3][1]=(Vec2(468.96,560.40));
-    PosObj[3][2]=(Vec2(681.80,564.00));
-    PosObj[3][3]=(Vec2(569.97,418.80));
-    
-    PosObj[4][1]=(Vec2(461.75,573.60));
-    PosObj[4][2]=(Vec2(465.35,426.00));
-    PosObj[4][3]=(Vec2(676.99,572.40));
-    PosObj[4][4]=(Vec2(683.00,429.60));
-    
-    PosObj[5][1]=(Vec2(429.28,574.80));
-    PosObj[5][2]=(Vec2(436.49,447.60));
-    PosObj[5][3]=(Vec2(580.79,513.60));
-    PosObj[5][4]=(Vec2(725.09,580.80));
-    PosObj[5][5]=(Vec2(720.28,446.40));
-    
-    PosObj[6][1]=(Vec2(429.28,574.80));
-    PosObj[6][2]=(Vec2(436.49,447.60));
-    PosObj[6][3]=(Vec2(580.79,513.60));
-    PosObj[6][4]=(Vec2(725.09,580.80));
-    PosObj[6][5]=(Vec2(720.28,446.40));
-    PosObj[6][6]=(Vec2(579.59,368.40));
-    
-    PosObj[7][1]=(Vec2(431.68,578.40));
-    PosObj[7][2]=(Vec2(430.48,478.80));
-    PosObj[7][3]=(Vec2(568.77,574.80));
-    PosObj[7][4]=(Vec2(562.75,478.80));
-    PosObj[7][5]=(Vec2(709.45,573.60));
-    PosObj[7][6]=(Vec2(704.64,478.80));
-    PosObj[7][7]=(Vec2(562.75,380.40));
-    
-    PosObj[8][1]=(Vec2(432.89,578.40));
-    PosObj[8][2]=(Vec2(434.09,480.00));
-    PosObj[8][3]=(Vec2(432.89,385.20));
-    PosObj[8][4]=(Vec2(568.77,577.20));
-    PosObj[8][5]=(Vec2(565.16,481.20));
-    PosObj[8][6]=(Vec2(561.55,384.00));
-    PosObj[8][7]=(Vec2(708.25,574.80));
-    PosObj[8][8]=(Vec2(705.85,480.00));
-    
-    PosObj[9][1]=(Vec2(432.89,578.40));
-    PosObj[9][2]=(Vec2(434.09,480.00));
-    PosObj[9][3]=(Vec2(432.89,385.20));
-    PosObj[9][4]=(Vec2(568.77,577.20));
-    PosObj[9][5]=(Vec2(565.16,481.20));
-    PosObj[9][6]=(Vec2(561.55,384.00));
-    PosObj[9][7]=(Vec2(708.25,574.80));
-    PosObj[9][8]=(Vec2(705.85,480.00));
-    PosObj[9][9]=(Vec2(702.24,386.40));
-    
-    PosObj[10][1]=(Vec2(432.45,608.40));
-    PosObj[10][2]=(Vec2(433.65,526.80));
-    PosObj[10][3]=(Vec2(432.45,445.20));
-    PosObj[10][4]=(Vec2(550.29,609.60));
-    PosObj[10][5]=(Vec2(551.49,529.20));
-    PosObj[10][6]=(Vec2(555.10,448.80));
-    PosObj[10][7]=(Vec2(672.94,609.60));
-    PosObj[10][8]=(Vec2(674.14,531.60));
-    PosObj[10][9]=(Vec2(671.74,450.00));
-    PosObj[10][10]=(Vec2(430.04,364.80));
-    
-    objSize[1]=Size(165,165);
-    objSize[2]=Size(135,135);
-    objSize[3]=Size(125,125);
-    objSize[4]=Size(115,115);
-    objSize[5]=Size(115,115);
-    objSize[6]=Size(115,115);
-    objSize[7]=Size(105,105);
-    objSize[8]=Size(95,95);
-    objSize[9]=Size(95,95);
-    objSize[10]=Size(75,75);
-    
     for (int i = 1; i <= totalCntNo; i++)
     {
         // Generate a random image name for the object
@@ -605,7 +567,7 @@ void counting::createCountingObjects()
             "ToyShop_Item%d.png",
             RandomHelper::random_int(1, totalObj)
         );
-        addSprite(this, spriteObjects[i], imgName, PosObj[2][i], Vec2(0.0f, 0.0f));
+        addSprite(this, spriteObjects[i], imgName, OUTOFSCREEN, Vec2(0.0f, 0.0f));
     }
 }
 #pragma mark - "Effects Functions"
