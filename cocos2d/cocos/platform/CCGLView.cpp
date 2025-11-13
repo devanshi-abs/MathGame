@@ -136,6 +136,11 @@ void GLView::updateDesignResolutionSize()
         _scaleX = (float)_screenSize.width / _designResolutionSize.width;
         _scaleY = (float)_screenSize.height / _designResolutionSize.height;
         
+        auto GAME_SCALE = 1.0f;
+        auto OFFSETX = 0.0f;
+        auto OFFSETY = 0.0f;
+
+
         if (_resolutionPolicy == ResolutionPolicy::NO_BORDER)
         {
             _scaleX = _scaleY = MAX(_scaleX, _scaleY);
@@ -155,6 +160,20 @@ void GLView::updateDesignResolutionSize()
             _scaleY = _scaleX;
             _designResolutionSize.height = ceilf(_screenSize.height/_scaleY);
         }
+
+        else if ( _resolutionPolicy == ResolutionPolicy::RESPONSIVE) {
+            _scaleX = (float)_screenSize.width / _designResolutionSize.width;
+            _scaleY = (float)_screenSize.height / _designResolutionSize.height;
+
+            GAME_SCALE = (_scaleX < _scaleY) ? _scaleX : _scaleY;
+            OFFSETX = (_scaleX > _scaleY) ? (1 / GAME_SCALE * _designResolutionSize.width / 2) - _designResolutionSize.width / 2 : 0.0f;
+            OFFSETY = (_scaleX > _scaleY) ? 0.0f : (1 / GAME_SCALE * _designResolutionSize.height / 2) - _designResolutionSize.height / 2;
+            
+            _scaleX = _scaleY = GAME_SCALE;
+            // _designResolutionSize.height = ceilf(_screenSize.height/_scaleY);
+        }
+
+        
         
         // calculate the rect of viewport
         float viewPortW = _designResolutionSize.width * _scaleX;
@@ -173,7 +192,7 @@ void GLView::updateDesignResolutionSize()
         // A default viewport is needed in order to display the FPS,
         // since the FPS are rendered in the Director, and there is no viewport there.
         // Everything, including the FPS should renderer in the Scene.
-        glViewport(0, 0, _screenSize.width, _screenSize.height);
+        glViewport(-OFFSETX, -OFFSETY, _screenSize.width + (OFFSETX*2), _screenSize.height + (OFFSETY*2));
     }
 }
 

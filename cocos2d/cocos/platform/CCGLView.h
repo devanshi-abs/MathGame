@@ -71,6 +71,10 @@ enum class ResolutionPolicy
      * aspect ratios.
      */
     FIXED_WIDTH,
+    /** New resolution policy to set adoptive resolution for all screens
+     * aspect ratio of the application. Borders can appear on two sides of the application.
+     */
+    RESPONSIVE,
 
     UNKNOWN,
 };

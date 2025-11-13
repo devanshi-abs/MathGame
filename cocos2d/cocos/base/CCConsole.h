@@ -54,7 +54,7 @@ typedef SSIZE_T ssize_t;
 
 NS_CC_BEGIN
 
-/// The max length of CCLog message.
+/// The max length of CCLOG message.
 static const int MAX_LOG_LENGTH = 16*1024;
 
 /**

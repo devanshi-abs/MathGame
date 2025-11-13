@@ -197,9 +197,9 @@ public class AppActivity extends Cocos2dxActivity {
     }
 
 
-    //    static {
-//        System.loadLibrary("MyGame");
-//    }
+        static {
+        System.loadLibrary("MyGame");
+    }
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
