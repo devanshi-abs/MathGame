@@ -34,7 +34,7 @@
       "closeDuration": 1.0,
       "minDelayBetween": 1.0,
       "maxDelayBetween": 1.5
-  }
+  },
   "objects": {
     "totalObjects": 10,
     "objectPrefix": "ToyShop_Item",
@@ -66,5 +66,27 @@
     "tap": "tap.mp3",
     "yay": "yay.mp3",
     "appreciationRange": [2, 6]
-  }
+  },
+
+  "owlSprites": [
+    {
+      "name": "Img_CharStool",
+      "file": "Stool.png",
+      "scale": [0.9, 0.9],
+      "position": [174.36, 76.80]
+    },
+    {
+      "name": "Img_CharShadow",
+      "file": "Char_shadow.png",
+      "scale": [0.4, 0.4],
+      "position": [191.19, 220.80]
+    },
+    {
+      "name": "Img_Character",
+      "file": "charOwl.png",
+      "scale": [1.0, 1.0],
+      "position": [186.38, 343.20]
+    }
+  ]
+
 }

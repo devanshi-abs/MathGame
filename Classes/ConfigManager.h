@@ -16,7 +16,8 @@ public:
     int getInt(const std::string& key, int defaultValue = 0);
     bool getBool(const std::string& key, bool defaultValue = false);
     cocos2d::Vec2 getVec2(const std::string& key, cocos2d::Vec2 defaultValue = cocos2d::Vec2::ZERO);
-    
+    const rapidjson::Value& getArray(const std::string& key);
+
 //private:
     ConfigManager() = default;
     static ConfigManager* _instance;

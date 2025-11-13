@@ -73,3 +73,11 @@ Vec2 ConfigManager::getVec2(const std::string& key, Vec2 defaultValue) {
     }
     return defaultValue;
 }
+const rapidjson::Value& ConfigManager::getArray(const std::string& key) {
+    static rapidjson::Value emptyArray(rapidjson::kArrayType);  // Safe fallback
+    auto v = getValueForPath(key);
+    if (v && v->IsArray()) {
+        return *v;
+    }
+    return emptyArray;
+}
