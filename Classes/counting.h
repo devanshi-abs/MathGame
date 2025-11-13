@@ -34,13 +34,6 @@ public:
     
     ConfigManager* cfg;
     
-    struct {
-        std::string name;
-        std::string image;
-        Size scale;
-        cocos2d::Vec2 position;
-    } SpriteData;
-    
     int tmp;
     int countGenNo;
     int totalObj=16;
@@ -73,7 +66,6 @@ public:
     Sprite *spriteSlideDoor[10];
     cocos2d::Point PosFinalAns;
     
-    
     //=====Count Objects======//
     Sprite *spriteObjects[20];
     Sprite *spriteObjectsNumber[20];
@@ -97,6 +89,7 @@ public:
             const cocos2d::Vec2& position,
             const cocos2d::Vec2& scale = cocos2d::Vec2(1.0f, 1.0f)
         );
+    
     //=====Effects Functions=====//
     
     void entryEffect();
