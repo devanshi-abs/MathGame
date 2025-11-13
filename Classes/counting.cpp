@@ -8,6 +8,11 @@
 
 #include "counting.h"
 #include "AppDelegate.h"
+#include "json/document.h"
+#include "json/rapidjson.h"
+#include "json/stringbuffer.h"
+#include "json/writer.h"
+
 
 USING_NS_CC;
 Scene*  counting::createScene()
@@ -75,32 +80,32 @@ bool counting::init()
         lblEqual->setColor(Color3B::BLACK);
         this->addChild(lblEqual);
         
-        Img_Box=Sprite::create(__String::createWithFormat("box%d.png",1)->getCString());
-        Img_Box->setScale(POSX*0.9,POSY*0.9);
-        this->addChild(Img_Box);
-        Img_Box->setPosition(Vec2(957.16,476.40));
-        Img_Box->setColor(Color3B::BLACK);
-        Img_Box->setOpacity(150);
+        spriteBox=Sprite::create(__String::createWithFormat("box%d.png",1)->getCString());
+        spriteBox->setScale(POSX*0.9,POSY*0.9);
+        this->addChild(spriteBox);
+        spriteBox->setPosition(Vec2(957.16,476.40));
+        spriteBox->setColor(Color3B::BLACK);
+        spriteBox->setOpacity(150);
         
         for(int i=1;i<=2;i++)
         {
-            Img_SlideDoor[i]=Sprite::create(__String::createWithFormat("purpleSlide%d.png",i)->getCString());
-            Img_SlideDoor[i]->setScale(POSX*0.9,POSY*0.9);
-            this->addChild(Img_SlideDoor[i]);
-            Img_SlideDoor[i]->setVisible(false);
+            spriteSlideDoor[i]=Sprite::create(__String::createWithFormat("purpleSlide%d.png",i)->getCString());
+            spriteSlideDoor[i]->setScale(POSX*0.9,POSY*0.9);
+            this->addChild(spriteSlideDoor[i]);
+            spriteSlideDoor[i]->setVisible(false);
         }
-        Img_SlideDoor[1]->setAnchorPoint(Vec2(0, 0.5));
-        Img_SlideDoor[2]->setAnchorPoint(Vec2(1, 0.5));
-        Img_SlideDoor[1]->setPosition(Vec2(883.81,476.40));
-        Img_SlideDoor[2]->setPosition(Vec2(1031.71,476.40));
+        spriteSlideDoor[1]->setAnchorPoint(Vec2(0, 0.5));
+        spriteSlideDoor[2]->setAnchorPoint(Vec2(1, 0.5));
+        spriteSlideDoor[1]->setPosition(Vec2(883.81,476.40));
+        spriteSlideDoor[2]->setPosition(Vec2(1031.71,476.40));
 
-        PosFinalAns=Vec2(Img_Box->getContentSize().width/2*POSX, Img_Box->getContentSize().height/2*POSY-20);
+        PosFinalAns=Vec2(spriteBox->getContentSize().width/2*POSX, spriteBox->getContentSize().height/2*POSY-20);
 
         lblFinalAns= Label::createWithTTF("?", "ChalkBoard.ttf", 140);
         lblFinalAns->setPosition(PosFinalAns);
         lblFinalAns->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
         lblFinalAns->setColor(Color3B::YELLOW);
-        Img_Box->addChild(lblFinalAns);
+        spriteBox->addChild(lblFinalAns);
     }
    
 #pragma mark - "Count Objects"
@@ -108,12 +113,12 @@ bool counting::init()
     createCountingObjects();
     
     lblEqual->setVisible(false);
-    Img_Box->setVisible(false);
+    spriteBox->setVisible(false);
 
     //====Ideal Effects===//
     
-    eyeBlinkAnim();
-    scheduleOnce(SEL_SCHEDULE(&counting::EntryEffect), 0.5);
+//    eyeBlinkAnim();
+    scheduleOnce(SEL_SCHEDULE(&counting::entryEffect), 0.5);
     schedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark), 5, -1, 3);
     schedule(SEL_SCHEDULE(&counting::idealEffectObj), 4, -1, 3);
     
@@ -146,15 +151,15 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
     
     for (int i=1;i<=3;i++)
     {
-        if(Img_AnsOptionBox[i]->getBoundingBox().containsPoint(location))
+        if(spriteAnsOptionBox[i]->getBoundingBox().containsPoint(location))
         {
             SimpleAudioEngine::getInstance()->playEffect("tap.mp3");
             unschedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark));
             unschedule(SEL_SCHEDULE(&counting::idealEffectAnsOption));
 
             lblFinalAns->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, 0.8),EaseBackOut::create(ScaleTo::create(0.4, 1)), NULL)));
-            Img_AnsOptionBox[i]->setLocalZOrder(5);
-            PosTouch=Img_AnsOptionBox[i]->getPosition();
+            spriteAnsOptionBox[i]->setLocalZOrder(5);
+            PosTouch=spriteAnsOptionBox[i]->getPosition();
             isMoved=true;
             whichOptionDrag=i;
             
@@ -164,15 +169,15 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
     
     for (int i = 1; i <= countGenNo; i++)
     {
-        if(Img_Objects[i]->getBoundingBox().containsPoint(location) && phaseCmp==false && Img_Objects[i]->getOpacity()==255)
+        if(spriteObjects[i]->getBoundingBox().containsPoint(location) && phaseCmp==false && spriteObjects[i]->getOpacity()==255)
         {
             tapObj++;
-            float scaleRatio=Img_Objects[1]->getScaleX();
+            float scaleRatio=spriteObjects[1]->getScaleX();
             
-            Img_Objects[i]->setOpacity(180);
+            spriteObjects[i]->setOpacity(180);
             SimpleAudioEngine::getInstance()->playEffect(__String::createWithFormat("%d.mp3",tapObj)->getCString());
 
-            Img_Objects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
+            spriteObjects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
             }),NULL));
             
             scheduleOnce(SEL_SCHEDULE(&counting::resetTapCount), 5);
@@ -185,14 +190,14 @@ void counting::onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos
     cocos2d::Point Scenelocation=touch->getLocation();
     cocos2d::Point location=this->convertToNodeSpace(Scenelocation);
     
-//    Img_Objects[tmp]->setPosition(location);
+//    spriteObjects[tmp]->setPosition(location);
     //prtcl->setPosition(location);
     
-   // Img_SlideDoor[tmp]->setPosition(location);
+   // spriteSlideDoor[tmp]->setPosition(location);
     
     if(whichOptionDrag!=0 && isMoved==true)
     {
-        Img_AnsOptionBox[whichOptionDrag]->setPosition(Vec2(location.x, location.y+50));
+        spriteAnsOptionBox[whichOptionDrag]->setPosition(Vec2(location.x, location.y+50));
     }
 }
 void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2d::Event *event)
@@ -209,14 +214,14 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         lblFinalAns->setScale(1,1);
         
         
-        if(Img_AnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(Img_Box->getBoundingBox()) && Img_AnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
+        if(spriteAnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(spriteBox->getBoundingBox()) && spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
         {
             unschedule(SEL_SCHEDULE(&counting::slideOpen));
-            Img_CharStool->stopAllActions();
+            spriteCharStool->stopAllActions();
             for (int i=1;i<=2;i++)
             {
-                Img_SlideDoor[i]->stopAllActions();
-                Img_SlideDoor[i]->setVisible(false);
+                spriteSlideDoor[i]->stopAllActions();
+                spriteSlideDoor[i]->setVisible(false);
             }
             
             isMoved=false;
@@ -226,7 +231,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
             
             Background->runAction(DelayTime::create(3));
             
-            Img_AnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, Img_Box->getPosition(), 100, 1),ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),CallFunc::create([this]{countingEffect();}),NULL));
+            spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, spriteBox->getPosition(), 100, 1),ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),CallFunc::create([this]{countingEffect();}),NULL));
         }
         else
         {
@@ -234,26 +239,26 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
 
             isMoved=false;
             Background->runAction(DelayTime::create(0.7));
-            Img_AnsOptionBox[whichOptionDrag]->setLocalZOrder(3);
+            spriteAnsOptionBox[whichOptionDrag]->setLocalZOrder(3);
 
-            if(Img_AnsOptionBox[whichOptionDrag]->getTag()==countGenNo)
+            if(spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo)
             {
                 SimpleAudioEngine::getInstance()->playEffect("whoosh.mp3");
 
-                Img_AnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
+                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
             else
             {
                 SimpleAudioEngine::getInstance()->playEffect("tapWrong.mp3");
 
-                Img_AnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),RotateTo::create(0.1,8),RotateTo::create(0.1,-8),RotateTo::create(0.1,8),RotateTo::create(0.1,0),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
+                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),RotateTo::create(0.1,8),RotateTo::create(0.1,-8),RotateTo::create(0.1,8),RotateTo::create(0.1,0),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
         }
     }
     
     //CCLOG("Vec2(%0.2f,%0.2f)",location.x,location.y);
     
-    CCLOG("Img_SlideDoor[%d]->setPosition(Vec2(%0.2f,%0.2f));",tmp,location.x,location.y);
+    CCLOG("spriteSlideDoor[%d]->setPosition(Vec2(%0.2f,%0.2f));",tmp,location.x,location.y);
 
 //    CCLOG("PosObj[%d][%d]=(Vec2(%0.2f,%0.2f));",1,tmp,location.x,location.y);
     tmp++;
@@ -264,15 +269,15 @@ void counting::genRandomObj()
     resetTapCount();
     phaseCmp=false;
     lblEqual->setVisible(false);
-    Img_Box->setVisible(false);
+    spriteBox->setVisible(false);
     
     countGenNo = RandomHelper::random_int(1,10);
     
     for (int i=1;i<=totalCntNo;i++)
     {
-        Img_Objects[i]->setPosition(OUTOFSCREEN);
-        Img_Objects[i]->setScale(0);
-        Img_Objects[i]->setRotation(0);
+        spriteObjects[i]->setPosition(OUTOFSCREEN);
+        spriteObjects[i]->setScale(0);
+        spriteObjects[i]->setRotation(0);
     }
     
     int rndmToy=0;
@@ -280,16 +285,16 @@ void counting::genRandomObj()
 
     for (int i=1;i<=countGenNo;i++)
     {
-        Img_Objects[i]->setTexture(__String::createWithFormat("ToyShop_Item%d.png",rndmToy)->getCString());
-        Img_Objects[i]->setPosition(PosObj[countGenNo][i]);
-        Img_Objects[i]->setVisible(false);
-        setObjScale(objSize[countGenNo],Img_Objects[i]);
+        spriteObjects[i]->setTexture(__String::createWithFormat("ToyShop_Item%d.png",rndmToy)->getCString());
+        spriteObjects[i]->setPosition(PosObj[countGenNo][i]);
+        spriteObjects[i]->setVisible(false);
+        setObjScale(objSize[countGenNo],spriteObjects[i]);
     }
     loopObjNo=0;
     for (int i = 1; i <= countGenNo; i++)
     {
         
-        Img_Objects[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.1f),Show::create(),CallFunc::create([this]{
+        spriteObjects[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.1f),Show::create(),CallFunc::create([this]{
             
             loopObjNo++;
             if(loopObjNo==countGenNo)
@@ -329,14 +334,14 @@ void counting::genRandomObj()
     
     for (int i = 1; i <=3; i++)
     {
-        Img_AnsOptionBox[i]->setTag(0);
-        Img_AnsOptionBox[i]->setPosition(shuffledPositions[i - 1]);//PosAnsBox[i]
-        Img_AnsOptionBox[i]->setScale(0);
-        Img_AnsOptionBox[i]->setLocalZOrder(3);
+        spriteAnsOptionBox[i]->setTag(0);
+        spriteAnsOptionBox[i]->setPosition(shuffledPositions[i - 1]);//PosAnsBox[i]
+        spriteAnsOptionBox[i]->setScale(0);
+        spriteAnsOptionBox[i]->setLocalZOrder(3);
         
         int index = randomNumbers[i-1];
         lbl_AnsOption[i]->setString(__String::createWithFormat("%d",index)->getCString());
-        Img_AnsOptionBox[i]->setTag(index);
+        spriteAnsOptionBox[i]->setTag(index);
     }
     
 
@@ -362,21 +367,21 @@ void counting::showOptionBox()
 {
     for (int i = 1; i <=3; i++)
     {
-        Img_AnsOptionBox[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.2f),EaseBackOut::create(ScaleTo::create(0.5, 0.9)),NULL));
+        spriteAnsOptionBox[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.2f),EaseBackOut::create(ScaleTo::create(0.5, 0.9)),NULL));
     }
     
     Background->runAction(Sequence::create(DelayTime::create(1),CallFunc::create([this]{
         lblEqual->setVisible(true);
-        Img_Box->setVisible(true);
+        spriteBox->setVisible(true);
         lblEqual->setOpacity(0);
-        Img_Box->setOpacity(0);
+        spriteBox->setOpacity(0);
 
         lblEqual->runAction(FadeIn::create(0.5));
-        Img_Box->runAction(FadeTo::create(0.5,150));
+        spriteBox->runAction(FadeTo::create(0.5,150));
         
         for (int i=1;i<=2;i++)
         {
-            Img_SlideDoor[i]->setVisible(true);
+            spriteSlideDoor[i]->setVisible(true);
         }
         scheduleOnce(SEL_SCHEDULE(&counting::slideOpen), 0.5);
 
@@ -417,32 +422,67 @@ void counting::createBackgroundSprite()
         }
     }
     
-    Img_Board=Sprite::create("boardbig.png");
-    this->addChild(Img_Board);
-    Img_Board->setScale(1.2,1.2);
-    Img_Board->setPosition(Vec2(693.82,-345.60-100));
+    spriteBoard=Sprite::create("boardbig.png");
+    this->addChild(spriteBoard);
+    spriteBoard->setScale(1.2,1.2);
+    spriteBoard->setPosition(Vec2(693.82,-345.60-100));
 }
 void counting::createOwlSprite()
 {
-        lyrOwl=Layer::create();
-        this->addChild(lyrOwl);
-        lyrOwl->setPositionX(-350);
-        
-        Img_CharStool=Sprite::create("Stool.png");
-        lyrOwl->addChild(Img_CharStool);
-        Img_CharStool->setScale(0.9,0.9);
-        Img_CharStool->setPosition(Vec2(174.36,76.80));
-        
-        Img_CharShadow=Sprite::create("Char_shadow.png");
-        lyrOwl->addChild(Img_CharShadow);
-        Img_CharShadow->setScale(0.4);
-        Img_CharShadow->setPosition(Vec2(191.19,220.80));
+    lyrOwl = Layer::create();
+    this->addChild(lyrOwl);
+    lyrOwl->setPositionX(-350);
 
-        Img_Character=Sprite::create("charOwl.png");
-        lyrOwl->addChild(Img_Character);
-        Img_Character->setScale(1.0,1.0);
-        Img_Character->setPosition(Vec2(186.38,343.20));
-    
+    const auto& owlSprites = cfg->getArray("owlSprites");
+    if (owlSprites.Empty()) {
+        CCLOG("[ConfigManager] No owlSprites found in config.");
+        return;
+    }
+    for (const auto& spr : owlSprites.GetArray())
+       {
+           createSpriteFromConfig(spr);
+       }
+}
+void counting::createSpriteFromConfig(const rapidjson::Value& spr)
+{
+    // Get data from JSON
+    std::string file = spr["file"].GetString();
+    float scaleX = spr["scale"][0].GetFloat();
+    float scaleY = spr["scale"][1].GetFloat();
+    float posX = spr["position"][0].GetFloat();
+    float posY = spr["position"][1].GetFloat();
+
+    // Create and setup sprite
+    addSprite(
+            lyrOwl,                 // parent
+            file,                   // image name
+            Vec2(posX, posY),       // position
+            Vec2(scaleX, scaleY)   // scale
+        );
+
+    CCLOG("Loaded sprite: %s", file.c_str());
+}
+Sprite* counting::addSprite(Node* parent,
+                                     const std::string& imageName,
+                                     const Vec2& position,
+                                     const Vec2& scale)
+{
+    Sprite* sprite = Sprite::create(imageName);
+    if (!sprite) {
+        CCLOG(" Failed to load image: %s", imageName.c_str());
+        return nullptr;
+    }
+
+    sprite->setPosition(position);
+    sprite->setScale(scale.x, scale.y);
+
+    if (parent)
+        parent->addChild(sprite);
+
+    CCLOG(" Created sprite: %s (pos: %.2f, %.2f | scale: %.2f, %.2f)",
+          imageName.c_str(), position.x, position.y, scale.x, scale.y);
+
+    return sprite;
 }
 void counting::createAnsOptionSprite()
 {
@@ -452,17 +492,16 @@ void counting::createAnsOptionSprite()
     
     for (int i=1;i<=3;i++)
     {
-        Img_AnsOptionBox[i]=Sprite::create(__String::createWithFormat("box%d.png",i)->getCString());
-        Img_AnsOptionBox[i]->setScale(0);//0.9
-        this->addChild(Img_AnsOptionBox[i],3);
-        Img_AnsOptionBox[i]->setPosition(PosAnsBox[i]);
+        spriteAnsOptionBox[i]=Sprite::create(__String::createWithFormat("box%d.png",i)->getCString());
+        spriteAnsOptionBox[i]->setScale(0);//0.9
+        this->addChild(spriteAnsOptionBox[i],3);
+        spriteAnsOptionBox[i]->setPosition(PosAnsBox[i]);
         
         lbl_AnsOption[i]= Label::createWithTTF("10", "ChalkBoard.ttf", 120);
         lbl_AnsOption[i]->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
         lbl_AnsOption[i]->setColor(Color3B::BLACK);//GRAY
-        lbl_AnsOption[i]->setPosition(Img_AnsOptionBox[i]->getContentSize().width/2*POSX, Img_AnsOptionBox[i]->getContentSize().height/2*POSY-20);
-        //        lblThinkingPopup->setLineHeight(20);
-        Img_AnsOptionBox[i]->addChild(lbl_AnsOption[i]);
+        lbl_AnsOption[i]->setPosition(spriteAnsOptionBox[i]->getContentSize().width/2*POSX, spriteAnsOptionBox[i]->getContentSize().height/2*POSY-20);
+        spriteAnsOptionBox[i]->addChild(lbl_AnsOption[i]);
     }
 }
 void counting::createCountingObjects()
@@ -545,16 +584,16 @@ void counting::createCountingObjects()
     
     for (int i=1;i<=totalCntNo;i++)
     {
-        Img_Objects[i]=Sprite::create(__String::createWithFormat("ToyShop_Item%d.png",RandomHelper::random_int(1, totalObj))->getCString());
-        this->addChild(Img_Objects[i]);
-        Img_Objects[i]->setPosition(PosObj[2][i]);
-        Img_Objects[i]->setScale(0);
+        spriteObjects[i]=Sprite::create(__String::createWithFormat("ToyShop_Item%d.png",RandomHelper::random_int(1, totalObj))->getCString());
+        this->addChild(spriteObjects[i]);
+        spriteObjects[i]->setPosition(PosObj[2][i]);
+        spriteObjects[i]->setScale(0);
     }
 }
 #pragma mark - "Effects Functions"
-void counting::EntryEffect()
+void counting::entryEffect()
 {
-    Img_Board->runAction(Sequence::create((MoveTo::create(0.5,Vec2(693.82,345.60))), NULL));
+    spriteBoard->runAction(Sequence::create((MoveTo::create(0.5,Vec2(693.82,345.60))), NULL));
     
     lyrOwl->runAction(Sequence::create((DelayTime::create(2),EaseBackOut::create(MoveTo::create(1,Vec2(-50,0)))), NULL));
     
@@ -576,18 +615,18 @@ void counting::idealEffectObj()
 {
     for (int i=1;i<=countGenNo;i++)
     {
-        Img_Objects[i]->runAction(Sequence::create(RotateTo::create(0.8, 3),RotateTo::create(0.8, -3),NULL));
+        spriteObjects[i]->runAction(Sequence::create(RotateTo::create(0.8, 3),RotateTo::create(0.8, -3),NULL));
     }
 }
 void counting::idealEffectAnsOption()
 {
     for (int i=1;i<=3;i++)
     {
-        Img_AnsOptionBox[i]->setScale(1);
-        Img_AnsOptionBox[i]->setRotation(0);
-        Img_AnsOptionBox[i]->stopAllActions();
+        spriteAnsOptionBox[i]->setScale(1);
+        spriteAnsOptionBox[i]->setRotation(0);
+        spriteAnsOptionBox[i]->stopAllActions();
     }
-    Img_AnsOptionBox[RandomHelper::random_int(1, 3)]->runAction(Sequence::create(ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1),ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1), NULL));
+    spriteAnsOptionBox[RandomHelper::random_int(1, 3)]->runAction(Sequence::create(ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1),ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1), NULL));
 }
 void counting::eyeBlinkAnim()
 {
@@ -607,7 +646,7 @@ void counting::eyeBlinkAnim()
         anim->setDelayPerUnit(blinkDelay / 3);
         anim->setLoops(1);
         
-        Img_Character->runAction(Animate::create(anim));
+        spriteCharacter->runAction(Animate::create(anim));
         
         // --- Schedule the next blink at a random interval ---
         float nextBlink = cocos2d::RandomHelper::random_real(minInterval, maxInterval);
@@ -627,17 +666,17 @@ void counting::slideOpen()
     
     for (int i = 1; i <= 2; i++)
     {
-        Img_SlideDoor[i]->runAction(Sequence::create(
+        spriteSlideDoor[i]->runAction(Sequence::create(
                                                      ScaleTo::create(openDuration, 0, 1),
                                                      nullptr
                                                      ));
     }
     
-    Img_CharStool->runAction(Sequence::create(
+   /* spriteCharStool->runAction(Sequence::create(
                                               DelayTime::create(randomDelay),
                                               CallFunc::create([this] { slideClose(); }),
                                               nullptr
-                                              ));
+                                              )); */
 }
 
 void counting::slideClose()
@@ -651,13 +690,13 @@ void counting::slideClose()
     
     for (int i = 1; i <= 2; i++)
     {
-        Img_SlideDoor[i]->runAction(Sequence::create(
+        spriteSlideDoor[i]->runAction(Sequence::create(
                                                      ScaleTo::create(closeDuration, 0.9f, 0.9f),
                                                      nullptr
                                                      ));
     }
     
-    Img_CharStool->runAction(Sequence::create(
+    spriteCharStool->runAction(Sequence::create(
                                               DelayTime::create(randomDelay),
                                               CallFunc::create([this] { slideOpen(); }),
                                               nullptr
@@ -669,7 +708,7 @@ void counting::resetTapCount()
 
     for (int i = 1; i <= totalCntNo; i++)
     {
-        Img_Objects[i]->setOpacity(255);
+        spriteObjects[i]->setOpacity(255);
     }
 }
 void counting::countingEffect()
@@ -678,10 +717,10 @@ void counting::countingEffect()
     unschedule(SEL_SCHEDULE(&counting::idealEffectObj));
     
     loopObjNo=0;
-    float scaleRatio=Img_Objects[1]->getScaleX();
+    float scaleRatio=spriteObjects[1]->getScaleX();
     for (int i = 1; i <= countGenNo; i++)
     {
-        Img_Objects[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 1.0f),ScaleTo::create(0.2, scaleRatio+0.2),CallFunc::create([this]{
+        spriteObjects[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 1.0f),ScaleTo::create(0.2, scaleRatio+0.2),CallFunc::create([this]{
             loopObjNo++;
             SimpleAudioEngine::getInstance()->playEffect(__String::createWithFormat("%d.mp3",loopObjNo)->getCString());
 
@@ -699,7 +738,7 @@ void counting::countingEffect()
 void counting::showSuccessParticle()
 {
     ParticleSystemQuad *prtcl = ParticleSystemQuad::create("successMiniGame (2).plist");
-    prtcl->setPosition(Img_Box->getPosition());
+    prtcl->setPosition(spriteBox->getPosition());
     prtcl->setLocalZOrder(20);
     prtcl->setDuration(0.5);
     this->addChild(prtcl);

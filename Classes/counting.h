@@ -34,6 +34,13 @@ public:
     
     ConfigManager* cfg;
     
+    struct {
+        std::string name;
+        std::string image;
+        Size scale;
+        cocos2d::Vec2 position;
+    } SpriteData;
+    
     int tmp;
     int countGenNo;
     int totalObj=16;
@@ -46,30 +53,30 @@ public:
     
     //=====Background Sprites=====//
     Sprite *Background;
-    Sprite *Img_Clouds[20];
-    Sprite *Img_Board;
+    Sprite *spriteClouds[20];
+    Sprite *spriteBoard;
     
     //=====Character=====//
     Layer *lyrOwl;
-    Sprite *Img_Character;
-    Sprite *Img_CharShadow;
-    Sprite *Img_CharStool;
+    Sprite *spriteCharacter;
+    Sprite *spriteCharShadow;
+    Sprite *spriteCharStool;
         
     //=====Answer Options=====//
-    Sprite *Img_AnsOptionBox[20];
+    Sprite *spriteAnsOptionBox[20];
     Label *lbl_AnsOption[20];
     cocos2d::Point PosAnsBox[20],PosTouch;
     
     Label *lblEqual;
     Label *lblFinalAns;
-    Sprite *Img_Box;
-    Sprite *Img_SlideDoor[10];
+    Sprite *spriteBox;
+    Sprite *spriteSlideDoor[10];
     cocos2d::Point PosFinalAns;
     
     
     //=====Count Objects======//
-    Sprite *Img_Objects[20];
-    Sprite *Img_ObjectsNumber[20];
+    Sprite *spriteObjects[20];
+    Sprite *spriteObjectsNumber[20];
     Label *lblNumbers[20];
     
     void setObjScale(cocos2d::Size ScaleToSize,Node *sprtObj);
@@ -83,9 +90,16 @@ public:
     void createAnsOptionSprite();
     void createCountingObjects();
     
+    void createSpriteFromConfig(const rapidjson::Value& spr);
+    cocos2d::Sprite* addSprite(
+            cocos2d::Node* parent,
+            const std::string& imageName,
+            const cocos2d::Vec2& position,
+            const cocos2d::Vec2& scale = cocos2d::Vec2(1.0f, 1.0f)
+        );
     //=====Effects Functions=====//
     
-    void EntryEffect();
+    void entryEffect();
     void showOptionBox();
     void scaleEffectQuesMark();
     
