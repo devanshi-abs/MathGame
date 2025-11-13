@@ -153,7 +153,7 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
     {
         if(spriteAnsOptionBox[i]->getBoundingBox().containsPoint(location))
         {
-            SimpleAudioEngine::getInstance()->playEffect("tap.mp3");
+            playSounds("tap.mp3");
             unschedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark));
             unschedule(SEL_SCHEDULE(&counting::idealEffectAnsOption));
 
@@ -175,7 +175,7 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
             float scaleRatio=spriteObjects[1]->getScaleX();
             
             spriteObjects[i]->setOpacity(180);
-            SimpleAudioEngine::getInstance()->playEffect(__String::createWithFormat("%d.mp3",tapObj)->getCString());
+            playSounds(__String::createWithFormat("%d.mp3",tapObj)->getCString());
 
             spriteObjects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
             }),NULL));
@@ -225,7 +225,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
             }
             
             isMoved=false;
-            SimpleAudioEngine::getInstance()->playEffect("particleClick.mp3");
+            playSounds("particleClick.mp3");
 
             scheduleOnce(SEL_SCHEDULE(&counting::showSuccessParticle), 0.5);
             
@@ -243,13 +243,13 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
 
             if(spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo)
             {
-                SimpleAudioEngine::getInstance()->playEffect("whoosh.mp3");
+                playSounds("whoosh.mp3");
 
                 spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
             else
             {
-                SimpleAudioEngine::getInstance()->playEffect("tapWrong.mp3");
+                playSounds("tapWrong.mp3");
 
                 spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),RotateTo::create(0.1,8),RotateTo::create(0.1,-8),RotateTo::create(0.1,8),RotateTo::create(0.1,0),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
@@ -722,8 +722,7 @@ void counting::countingEffect()
     {
         spriteObjects[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 1.0f),ScaleTo::create(0.2, scaleRatio+0.2),CallFunc::create([this]{
             loopObjNo++;
-            SimpleAudioEngine::getInstance()->playEffect(__String::createWithFormat("%d.mp3",loopObjNo)->getCString());
-
+            playSounds(__String::createWithFormat("%d.mp3",loopObjNo)->getCString());
         }),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
             
             if(loopObjNo==countGenNo)
@@ -747,9 +746,9 @@ void counting::showSuccessParticle()
 }
 void counting::playAppreciationSound()
 {
-    SimpleAudioEngine::getInstance()->playEffect(__String::createWithFormat("appreciation_%d.mp3",RandomHelper::random_int(2, 6))->getCString());
+    std::string strSoundAppreciation = __String::createWithFormat("appreciation_%d.mp3",RandomHelper::random_int(2, 6))->getCString();
+    playSounds(strSoundAppreciation);
 }
-
 void counting::levelCmpEffect()
 {
     ParticleSystemQuad *prtcl = ParticleSystemQuad::create("fallingConfeti (9).plist");
@@ -757,15 +756,16 @@ void counting::levelCmpEffect()
     prtcl->setLocalZOrder(20);
     prtcl->setDuration(0.5);
     this->addChild(prtcl);
-
-    std::string tapSound = cfg->getString("sounds.yay", "tap.mp3");
-
     
-    SimpleAudioEngine::getInstance()->playEffect("yay.mp3");
+    playSounds("yay.mp3");
+}
+void counting::playSounds(std::string soundFile)
+{
+    SimpleAudioEngine::getInstance()->playEffect(soundFile.c_str());
 }
 void counting::EntrySound()
 {
-    SimpleAudioEngine::getInstance()->playEffect("CountTitleSnd.mp3");
+    playSounds("CountTitleSnd.mp3");
 }
 void counting::TouchOn()
 {

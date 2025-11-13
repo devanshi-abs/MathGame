@@ -112,6 +112,7 @@ public:
     void levelCmpEffect();
     
     void resetTapCount();
+    void playSounds(std::string soundFile);
     ParticleSystemQuad *prtcl;
     
     virtual bool init();
