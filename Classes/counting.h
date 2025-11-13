@@ -38,6 +38,7 @@ public:
     int countGenNo;
     int totalObj=16;
     int totalCntNo=10;
+    int totalAnsOptions=3;
     int whichOptionDrag;
     int loopObjNo;
     int tapObj=0;
@@ -45,7 +46,7 @@ public:
     bool phaseCmp;
     
     //=====Background Sprites=====//
-    Sprite *Background;
+    Sprite *spriteBackground;
     Sprite *spriteClouds[20];
     Sprite *spriteBoard;
     
@@ -85,6 +86,7 @@ public:
     void createSpriteFromConfig(const rapidjson::Value& spr);
     cocos2d::Sprite* addSprite(
             cocos2d::Node* parent,
+             Sprite*& sprite,
             const std::string& imageName,
             const cocos2d::Vec2& position,
             const cocos2d::Vec2& scale = cocos2d::Vec2(1.0f, 1.0f)

@@ -80,18 +80,21 @@ bool counting::init()
         lblEqual->setColor(Color3B::BLACK);
         this->addChild(lblEqual);
         
-        spriteBox=Sprite::create(__String::createWithFormat("box%d.png",1)->getCString());
-        spriteBox->setScale(POSX*0.9,POSY*0.9);
-        this->addChild(spriteBox);
-        spriteBox->setPosition(Vec2(957.16,476.40));
+        addSprite(this, spriteBox, StringUtils::format("box%d.png", 1),
+                  Vec2(957.16f, 476.40f),
+                  Vec2(POSX * 0.9f, POSY * 0.9f));
+
         spriteBox->setColor(Color3B::BLACK);
         spriteBox->setOpacity(150);
         
-        for(int i=1;i<=2;i++)
+        for (int i = 1; i <= 2; i++)
         {
-            spriteSlideDoor[i]=Sprite::create(__String::createWithFormat("purpleSlide%d.png",i)->getCString());
-            spriteSlideDoor[i]->setScale(POSX*0.9,POSY*0.9);
-            this->addChild(spriteSlideDoor[i]);
+            std::string imgName = StringUtils::format("purpleSlide%d.png", i);
+
+            addSprite(this, spriteSlideDoor[i], imgName,
+                      Vec2::ZERO, // position will be set below
+                      Vec2(POSX * 0.9f, POSY * 0.9f));
+
             spriteSlideDoor[i]->setVisible(false);
         }
         spriteSlideDoor[1]->setAnchorPoint(Vec2(0, 0.5));
@@ -144,12 +147,12 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
     cocos2d::Point Scenelocation=touch->getLocation();
     cocos2d::Point location=this->convertToNodeSpace(Scenelocation);
     
-    if(Background->getNumberOfRunningActions()!=0)
+    if(spriteBackground->getNumberOfRunningActions()!=0)
     {
         return;
     }
     
-    for (int i=1;i<=3;i++)
+    for (int i=1;i<=totalAnsOptions;i++)
     {
         if(spriteAnsOptionBox[i]->getBoundingBox().containsPoint(location))
         {
@@ -217,7 +220,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         if(spriteAnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(spriteBox->getBoundingBox()) && spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
         {
             unschedule(SEL_SCHEDULE(&counting::slideOpen));
-           // spriteCharStool->stopAllActions();
+            lblEqual->stopAllActions();
             for (int i=1;i<=2;i++)
             {
                 spriteSlideDoor[i]->stopAllActions();
@@ -229,7 +232,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
 
             showParticle(spriteBox->getPosition(), false, 0.5 ,0.5,20);
 
-            Background->runAction(DelayTime::create(3));
+            spriteBackground->runAction(DelayTime::create(3));
             
             spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, spriteBox->getPosition(), 100, 1),ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),CallFunc::create([this]{countingEffect();}),NULL));
         }
@@ -238,7 +241,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
             schedule(SEL_SCHEDULE(&counting::idealEffectAnsOption), 4.5, -1, 3);
 
             isMoved=false;
-            Background->runAction(DelayTime::create(0.7));
+            spriteBackground->runAction(DelayTime::create(0.7));
             spriteAnsOptionBox[whichOptionDrag]->setLocalZOrder(3);
 
             if(spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo)
@@ -332,7 +335,7 @@ void counting::genRandomObj()
     std::vector<Vec2> shuffledPositions = { PosAnsBox[1], PosAnsBox[2], PosAnsBox[3] };
     std::random_shuffle(shuffledPositions.begin(), shuffledPositions.end());
     
-    for (int i = 1; i <=3; i++)
+    for (int i = 1; i <=totalAnsOptions; i++)
     {
         spriteAnsOptionBox[i]->setTag(0);
         spriteAnsOptionBox[i]->setPosition(shuffledPositions[i - 1]);//PosAnsBox[i]
@@ -363,12 +366,12 @@ void counting::setObjScale(cocos2d::Size ScaleToSize ,Node *sprtObj)
 }
 void counting::showOptionBox()
 {
-    for (int i = 1; i <=3; i++)
+    for (int i = 1; i <=totalAnsOptions; i++)
     {
         spriteAnsOptionBox[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.2f),EaseBackOut::create(ScaleTo::create(0.5, 0.9)),NULL));
     }
     
-    Background->runAction(Sequence::create(DelayTime::create(1),CallFunc::create([this]{
+    spriteBackground->runAction(Sequence::create(DelayTime::create(1),CallFunc::create([this]{
         lblEqual->setVisible(true);
         spriteBox->setVisible(true);
         lblEqual->setOpacity(0);
@@ -392,9 +395,8 @@ void counting::showOptionBox()
 #pragma mark - "Create Sprite Functions"
 void counting::createBackgroundSprite()
 {
-    Background=Sprite::create("counting_Bg.png");
-    this->addChild(Background);
-    Background->setPosition(Vec2(IPAD_WIDTH/2, IPAD_HEIGHT/2+100));
+        
+    addSprite(this, spriteBackground,"counting_Bg.png",Vec2(IPAD_WIDTH/2, IPAD_HEIGHT/2+100),Vec2(1.0, 1.0));
     
     // --- Apply clouds dynamically ---
     const rapidjson::Value* clouds = cfg->getValueForPath("background.clouds");
@@ -406,11 +408,11 @@ void counting::createBackgroundSprite()
             Vec2 end(cloud["end"]["x"].GetFloat(), cloud["end"]["y"].GetFloat());
             float duration = cloud["duration"].GetFloat();
             
-            auto sp = Sprite::create(cloudFile);
-            sp->setPosition(start);
-            this->addChild(sp);
+            Sprite* spriteCloud;
+            addSprite(this, spriteCloud,cloudFile,start,Vec2(1.0, 1.0));
+
             
-            sp->runAction(RepeatForever::create(
+            spriteCloud->runAction(RepeatForever::create(
             Sequence::create(
                              MoveTo::create(duration, end),
                              Place::create(start),
@@ -420,10 +422,7 @@ void counting::createBackgroundSprite()
         }
     }
     
-    spriteBoard=Sprite::create("boardbig.png");
-    this->addChild(spriteBoard);
-    spriteBoard->setScale(1.2,1.2);
-    spriteBoard->setPosition(Vec2(693.82,-345.60-100));
+    addSprite(this,spriteBoard,"boardbig.png",Vec2(693.82, -345.60 - 100),Vec2(1.2f, 1.2f));
 }
 void counting::createOwlSprite()
 {
@@ -445,14 +444,30 @@ void counting::createSpriteFromConfig(const rapidjson::Value& spr)
 {
     // Get data from JSON
     std::string file = spr["file"].GetString();
+    std::string spriteName = spr["name"].GetString();
     float scaleX = spr["scale"][0].GetFloat();
     float scaleY = spr["scale"][1].GetFloat();
     float posX = spr["position"][0].GetFloat();
     float posY = spr["position"][1].GetFloat();
 
+    Sprite *sprite;
+    if (spriteName == "spriteCharStool")
+        {
+            sprite = spriteCharStool;
+        }
+        else if (spriteName == "spriteCharShadow")
+        {
+            sprite = spriteCharShadow;
+        }
+        else if (spriteName == "spriteCharacter")
+        {
+            sprite = spriteCharacter;
+        }
+    
     // Create and setup sprite
     addSprite(
             lyrOwl,                 // parent
+              sprite,
             file,                   // image name
             Vec2(posX, posY),       // position
             Vec2(scaleX, scaleY)   // scale
@@ -461,11 +476,12 @@ void counting::createSpriteFromConfig(const rapidjson::Value& spr)
     CCLOG("Loaded sprite: %s", file.c_str());
 }
 Sprite* counting::addSprite(Node* parent,
+                              Sprite*& sprite,
                                      const std::string& imageName,
                                      const Vec2& position,
                                      const Vec2& scale)
 {
-    Sprite* sprite = Sprite::create(imageName);
+    sprite = Sprite::create(imageName);
     if (!sprite) {
         CCLOG(" Failed to load image: %s", imageName.c_str());
         return nullptr;
@@ -488,12 +504,14 @@ void counting::createAnsOptionSprite()
     PosAnsBox[2]=(Vec2(905.46,232.80));
     PosAnsBox[3]=(Vec2(693.82,231.60));
     
-    for (int i=1;i<=3;i++)
+    for (int i=1;i<=totalAnsOptions;i++)
     {
-        spriteAnsOptionBox[i]=Sprite::create(__String::createWithFormat("box%d.png",i)->getCString());
-        spriteAnsOptionBox[i]->setScale(0);//0.9
-        this->addChild(spriteAnsOptionBox[i],3);
-        spriteAnsOptionBox[i]->setPosition(PosAnsBox[i]);
+        std::string imgName = StringUtils::format("box%d.png", i);
+        addSprite(this, spriteAnsOptionBox[i], imgName, PosAnsBox[i], Vec2(0.0f, 0.0f)); // scale 0 same as before
+
+        // Ensure it's added on the correct Z-order
+        spriteAnsOptionBox[i]->setLocalZOrder(3);
+
         
         lbl_AnsOption[i]= Label::createWithTTF("10", "ChalkBoard.ttf", 120);
         lbl_AnsOption[i]->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
@@ -580,12 +598,14 @@ void counting::createCountingObjects()
     objSize[9]=Size(95,95);
     objSize[10]=Size(75,75);
     
-    for (int i=1;i<=totalCntNo;i++)
+    for (int i = 1; i <= totalCntNo; i++)
     {
-        spriteObjects[i]=Sprite::create(__String::createWithFormat("ToyShop_Item%d.png",RandomHelper::random_int(1, totalObj))->getCString());
-        this->addChild(spriteObjects[i]);
-        spriteObjects[i]->setPosition(PosObj[2][i]);
-        spriteObjects[i]->setScale(0);
+        // Generate a random image name for the object
+        std::string imgName = StringUtils::format(
+            "ToyShop_Item%d.png",
+            RandomHelper::random_int(1, totalObj)
+        );
+        addSprite(this, spriteObjects[i], imgName, PosObj[2][i], Vec2(0.0f, 0.0f));
     }
 }
 #pragma mark - "Effects Functions"
@@ -618,7 +638,7 @@ void counting::idealEffectObj()
 }
 void counting::idealEffectAnsOption()
 {
-    for (int i=1;i<=3;i++)
+    for (int i=1;i<=totalAnsOptions;i++)
     {
         spriteAnsOptionBox[i]->setScale(1);
         spriteAnsOptionBox[i]->setRotation(0);
@@ -670,11 +690,11 @@ void counting::slideOpen()
                                                      ));
     }
     
-   /* spriteCharStool->runAction(Sequence::create(
+    lblEqual->runAction(Sequence::create(
                                               DelayTime::create(randomDelay),
                                               CallFunc::create([this] { slideClose(); }),
                                               nullptr
-                                              )); */
+                                              ));
 }
 
 void counting::slideClose()
@@ -694,7 +714,7 @@ void counting::slideClose()
                                                      ));
     }
     
-    spriteCharStool->runAction(Sequence::create(
+    lblEqual->runAction(Sequence::create(
                                               DelayTime::create(randomDelay),
                                               CallFunc::create([this] { slideOpen(); }),
                                               nullptr
