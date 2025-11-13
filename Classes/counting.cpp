@@ -120,7 +120,7 @@ bool counting::init()
 
     //====Ideal Effects===//
     
-//    eyeBlinkAnim();
+    eyeBlinkAnim();
     scheduleOnce(SEL_SCHEDULE(&counting::entryEffect), 0.5);
     schedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark), 5, -1, 3);
     schedule(SEL_SCHEDULE(&counting::idealEffectObj), 4, -1, 3);
@@ -260,10 +260,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
     }
     
     //CCLOG("Vec2(%0.2f,%0.2f)",location.x,location.y);
-    
-    CCLOG("spriteSlideDoor[%d]->setPosition(Vec2(%0.2f,%0.2f));",tmp,location.x,location.y);
 
-//    CCLOG("PosObj[%d][%d]=(Vec2(%0.2f,%0.2f));",1,tmp,location.x,location.y);
     tmp++;
 }
 #pragma  mark- "Your Methods"
@@ -468,50 +465,12 @@ void counting::createOwlSprite()
     this->addChild(lyrOwl);
     lyrOwl->setPositionX(-350);
 
-    const auto& owlSprites = cfg->getArray("owlSprites");
-    if (owlSprites.Empty()) {
-        CCLOG("[ConfigManager] No owlSprites found in config.");
-        return;
-    }
-    for (const auto& spr : owlSprites.GetArray())
-       {
-           createSpriteFromConfig(spr);
-       }
-}
-void counting::createSpriteFromConfig(const rapidjson::Value& spr)
-{
-    // Get data from JSON
-    std::string file = spr["file"].GetString();
-    std::string spriteName = spr["name"].GetString();
-    float scaleX = spr["scale"][0].GetFloat();
-    float scaleY = spr["scale"][1].GetFloat();
-    float posX = spr["position"][0].GetFloat();
-    float posY = spr["position"][1].GetFloat();
+    addSprite(lyrOwl, spriteCharStool,"Stool.png",Vec2(174.36, 76.80),Vec2(1.0, 1.0));
 
-    Sprite *sprite;
-    if (spriteName == "spriteCharStool")
-        {
-            sprite = spriteCharStool;
-        }
-        else if (spriteName == "spriteCharShadow")
-        {
-            sprite = spriteCharShadow;
-        }
-        else if (spriteName == "spriteCharacter")
-        {
-            sprite = spriteCharacter;
-        }
-    
-    // Create and setup sprite
-    addSprite(
-            lyrOwl,                 // parent
-              sprite,
-            file,                   // image name
-            Vec2(posX, posY),       // position
-            Vec2(scaleX, scaleY)   // scale
-        );
+    addSprite(lyrOwl, spriteCharShadow,"Char_shadow.png",Vec2(191.19, 220.80),Vec2(0.4, 0.4));
 
-    CCLOG("Loaded sprite: %s", file.c_str());
+    addSprite(lyrOwl, spriteCharacter,"charOwl.png",Vec2(186.38, 343.20),Vec2(1.0, 1.0));
+
 }
 Sprite* counting::addSprite(Node* parent,
                               Sprite*& sprite,
@@ -610,6 +569,12 @@ void counting::idealEffectAnsOption()
 }
 void counting::eyeBlinkAnim()
 {
+    if(!spriteCharacter)
+    {
+        CCLOG("Null Character");
+        return;
+    }
+    
     //====Eye Blink Animation====//
   
         float blinkDelay = cfg->getFloat("character.eyeBlink.blinkDelay", 0.2f);
