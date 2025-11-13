@@ -100,7 +100,6 @@ public:
     void idealEffectAnsOption();
     
     void eyeBlinkAnim();
-    void showSuccessParticle();
     
     void slideOpen();
     void slideClose();
@@ -109,12 +108,11 @@ public:
     void countingEffect();
     
     void playAppreciationSound();
-    void levelCmpEffect();
     
     void resetTapCount();
     void playSounds(std::string soundFile);
-    ParticleSystemQuad *prtcl;
-    
+    void showParticle(const Point &particlePos , bool isLevelEnd ,float delayDuration, int durationPlay, int zOrderNo);
+
     virtual bool init();
     virtual void update(float delta);
     // a selector callback

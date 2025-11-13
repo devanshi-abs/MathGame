@@ -217,7 +217,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         if(spriteAnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(spriteBox->getBoundingBox()) && spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
         {
             unschedule(SEL_SCHEDULE(&counting::slideOpen));
-            spriteCharStool->stopAllActions();
+           // spriteCharStool->stopAllActions();
             for (int i=1;i<=2;i++)
             {
                 spriteSlideDoor[i]->stopAllActions();
@@ -227,8 +227,8 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
             isMoved=false;
             playSounds("particleClick.mp3");
 
-            scheduleOnce(SEL_SCHEDULE(&counting::showSuccessParticle), 0.5);
-            
+            showParticle(spriteBox->getPosition(), false, 0.5 ,0.5,20);
+
             Background->runAction(DelayTime::create(3));
             
             spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, spriteBox->getPosition(), 100, 1),ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),CallFunc::create([this]{countingEffect();}),NULL));
@@ -343,8 +343,6 @@ void counting::genRandomObj()
         lbl_AnsOption[i]->setString(__String::createWithFormat("%d",index)->getCString());
         spriteAnsOptionBox[i]->setTag(index);
     }
-    
-
 }
 void counting::setObjScale(cocos2d::Size ScaleToSize ,Node *sprtObj)
 {
@@ -727,37 +725,43 @@ void counting::countingEffect()
             
             if(loopObjNo==countGenNo)
             {
-                scheduleOnce(SEL_SCHEDULE(&counting::levelCmpEffect), 1.0);
-                scheduleOnce(SEL_SCHEDULE(&counting::genRandomObj), 2.2);//1.9
+                showParticle(Vec2(691.42,753.60), true, 1.0 ,0.5,20);
+
+                scheduleOnce(SEL_SCHEDULE(&counting::genRandomObj), 2.2);
             }
             
         }),NULL));
     }
 }
-void counting::showSuccessParticle()
+void counting::showParticle(const Point &particlePos , bool isLevelEnd ,float delayDuration, int durationPlay, int zOrderNo)
 {
-    ParticleSystemQuad *prtcl = ParticleSystemQuad::create("successMiniGame (2).plist");
-    prtcl->setPosition(spriteBox->getPosition());
-    prtcl->setLocalZOrder(20);
-    prtcl->setDuration(0.5);
-    this->addChild(prtcl);
-    
-    playAppreciationSound();
+
+    // Schedule a one-time callback after delay
+    this->runAction(Sequence::create(
+        DelayTime::create(delayDuration),
+        CallFunc::create([=]() {
+            // Choose particle file based on type
+            std::string plistFile = isLevelEnd ? "fallingConfeti (9).plist" : "successMiniGame (2).plist";
+            std::string strSoundAppreciation = __String::createWithFormat("appreciation_%d.mp3",RandomHelper::random_int(2, 6))->getCString();
+            std::string soundFile = isLevelEnd ? "yay.mp3" : strSoundAppreciation;
+            
+            auto particleSystem = ParticleSystemQuad::create(plistFile);
+            particleSystem->setPosition(particlePos);
+            particleSystem->setDuration(durationPlay);
+            particleSystem->setLocalZOrder(zOrderNo);
+            this->addChild(particleSystem);
+
+            // Play sound
+            playSounds(soundFile);
+        }),
+        nullptr
+    ));
 }
+
 void counting::playAppreciationSound()
 {
     std::string strSoundAppreciation = __String::createWithFormat("appreciation_%d.mp3",RandomHelper::random_int(2, 6))->getCString();
     playSounds(strSoundAppreciation);
-}
-void counting::levelCmpEffect()
-{
-    ParticleSystemQuad *prtcl = ParticleSystemQuad::create("fallingConfeti (9).plist");
-    prtcl->setPosition(Vec2(691.42,753.60));
-    prtcl->setLocalZOrder(20);
-    prtcl->setDuration(0.5);
-    this->addChild(prtcl);
-    
-    playSounds("yay.mp3");
 }
 void counting::playSounds(std::string soundFile)
 {
