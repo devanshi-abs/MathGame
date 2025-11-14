@@ -15,18 +15,18 @@ ConfigManager* ConfigManager::getInstance() {
     return _instance;
 }
 
-bool ConfigManager::loadConfig(const std::string& fileName) {
+void ConfigManager::loadConfig(const std::string& fileName) {
     std::string fullPath = FileUtils::getInstance()->fullPathForFilename(fileName);
     std::string jsonData = FileUtils::getInstance()->getStringFromFile(fullPath);
     
     _doc.Parse(jsonData.c_str());
     if (_doc.HasParseError()) {
         CCLOG("Config JSON parse error: %s (offset %zu)", GetParseError_En(_doc.GetParseError()), _doc.GetErrorOffset());
-        return false;
+       // return false;
     }
     
     CCLOG("ConfigManager: Successfully loaded %s", fileName.c_str());
-    return true;
+   // return true;
 }
 
 rapidjson::Value* ConfigManager::getValueForPath(const std::string& path) {

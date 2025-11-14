@@ -7,7 +7,7 @@ class ConfigManager {
 public:
     static ConfigManager* getInstance();
     
-    bool loadConfig(const std::string& fileName);
+    void loadConfig(const std::string& fileName);
     bool hasKey(const std::string& key);
     
     // --- Typed Getters ---
@@ -18,7 +18,6 @@ public:
     cocos2d::Vec2 getVec2(const std::string& key, cocos2d::Vec2 defaultValue = cocos2d::Vec2::ZERO);
     const rapidjson::Value& getArray(const std::string& key);
 
-//private:
     ConfigManager() = default;
     static ConfigManager* _instance;
     rapidjson::Document _doc;
