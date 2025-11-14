@@ -48,6 +48,10 @@ bool Counting::init()
     cfgManager = ConfigManager::getInstance();
     cfgManager->loadConfig("counting_config.json");
     
+    totalObj = cfgManager->getInt("objects.totalObjects", 10);
+    totalCntNo = cfgManager->getInt("objects.totalCountNumbers", 10);
+    totalAnsOptions = cfgManager->getInt("answerBoxes.totalAnsOptions", 3);
+
 #pragma mark - "Background sprites"
 
     createBackgroundSprites();

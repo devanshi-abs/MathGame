@@ -37,6 +37,7 @@
   },
   "objects": {
     "totalObjects": 10,
+    "totalCountNumbers": 10,
     "objectPrefix": "ToyShop_Item",
     
     "objectSizes": {
@@ -132,6 +133,7 @@
   },
 
   "answerBoxes": {
+    "totalAnsOptions": 3,
     "positions": [
       { "x": 482.19, "y": 232.8 },
       { "x": 905.46, "y": 232.8 },

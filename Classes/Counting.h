@@ -33,9 +33,9 @@ public:
     
     int tmp;
     int countGenNo;
-    int totalObj=16;
-    int totalCntNo=10;
-    int totalAnsOptions=3;
+    int totalObj;
+    int totalCntNo;
+    int totalAnsOptions;
     int whichOptionDrag;
     int loopObjNo;
     int tapObj=0;
