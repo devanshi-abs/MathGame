@@ -6,7 +6,7 @@
 //
 //
 
-#include "counting.h"
+#include "Counting.h"
 #include "AppDelegate.h"
 #include "json/document.h"
 #include "json/rapidjson.h"
@@ -15,13 +15,13 @@
 
 
 USING_NS_CC;
-Scene*  counting::createScene()
+Scene*  Counting::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::create();
     
     // 'layer' is an autorelease object
-    auto layer = counting::create();
+    auto layer = Counting::create();
     
     // add layer as a child to scene
     scene->addChild(layer);
@@ -29,7 +29,7 @@ Scene*  counting::createScene()
     // return the scene
     return scene;
 }
-bool counting::init()
+bool Counting::init()
 {
     //////////////////////////////
     // 1. super init first
@@ -40,7 +40,7 @@ bool counting::init()
     
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     auto pKeybackListener = EventListenerKeyboard::create();
-    pKeybackListener->onKeyReleased = CC_CALLBACK_2(counting::onKeyReleased, this);
+    pKeybackListener->onKeyReleased = CC_CALLBACK_2(Counting::onKeyReleased, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(pKeybackListener, this);
 #endif
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -52,96 +52,48 @@ bool counting::init()
     tmp=1;
     
     // --- Load JSON Config ---
-    cfg = ConfigManager::getInstance();
-    cfg->loadConfig("counting_config.json");
+    cfgManager = ConfigManager::getInstance();
+    cfgManager->loadConfig("counting_config.json");
     
 #pragma mark - "Background sprites"
 
-    //===== Background sprites =====//
-    
-    createBackgroundSprite();
+    createBackgroundSprites();
     
 #pragma mark - "Character sprites"
     
-    //===== Character sprites =====//
-    createOwlSprite();
+    createOwlSprites();
     
 #pragma mark - "Answer Options"
-    {
-        //===== Bottom Option sprites =====//
+ 
+    createAnsOptionSprites();
         
-        createAnsOptionSprite();
-        
-        //===== Final Answer sprites =====//
-        
-        lblEqual= Label::createWithTTF("=", "ChalkBoard.ttf", 150);
-        lblEqual->setPosition(Vec2(826.09,456.00));
-        lblEqual->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
-        lblEqual->setColor(Color3B::BLACK);
-        this->addChild(lblEqual);
-        
-        addSprite(this, spriteBox, StringUtils::format("box%d.png", 1),
-                  Vec2(957.16f, 476.40f),
-                  Vec2(POSX * 0.9f, POSY * 0.9f));
-
-        spriteBox->setColor(Color3B::BLACK);
-        spriteBox->setOpacity(150);
-        
-        for (int i = 1; i <= 2; i++)
-        {
-            std::string imgName = StringUtils::format("purpleSlide%d.png", i);
-
-            addSprite(this, spriteSlideDoor[i], imgName,
-                      Vec2::ZERO, // position will be set below
-                      Vec2(POSX * 0.9f, POSY * 0.9f));
-
-            spriteSlideDoor[i]->setVisible(false);
-        }
-        spriteSlideDoor[1]->setAnchorPoint(Vec2(0, 0.5));
-        spriteSlideDoor[2]->setAnchorPoint(Vec2(1, 0.5));
-        spriteSlideDoor[1]->setPosition(Vec2(883.81,476.40));
-        spriteSlideDoor[2]->setPosition(Vec2(1031.71,476.40));
-
-        PosFinalAns=Vec2(spriteBox->getContentSize().width/2*POSX, spriteBox->getContentSize().height/2*POSY-20);
-
-        lblFinalAns= Label::createWithTTF("?", "ChalkBoard.ttf", 140);
-        lblFinalAns->setPosition(PosFinalAns);
-        lblFinalAns->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
-        lblFinalAns->setColor(Color3B::YELLOW);
-        spriteBox->addChild(lblFinalAns);
-    }
+#pragma mark - "Final Answer"
+    
+    createFinalAnsSprites();
    
 #pragma mark - "Count Objects"
         
     createCountingObjects();
     
-    lblEqual->setVisible(false);
-    spriteBox->setVisible(false);
-
     //====Ideal Effects===//
     
     eyeBlinkAnim();
-    scheduleOnce(SEL_SCHEDULE(&counting::entryEffect), 0.5);
-    schedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark), 5, -1, 3);
-    schedule(SEL_SCHEDULE(&counting::idealEffectObj), 4, -1, 3);
-    
+    scheduleOnce(SEL_SCHEDULE(&Counting::entryEffect), 0.5);
+    schedule(SEL_SCHEDULE(&Counting::scaleEffectQuesMark), 5, -1, 3);
+    schedule(SEL_SCHEDULE(&Counting::idealEffectObjs), 4, -1, 3);
     
     auto listener = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesBegan = CC_CALLBACK_2(counting::onTouchesBegan, this);
-    listener->onTouchesMoved = CC_CALLBACK_2(counting::onTouchesMoved, this);
-    listener->onTouchesEnded = CC_CALLBACK_2(counting::onTouchesEnded, this);
-    listener->onTouchesCancelled = CC_CALLBACK_2(counting::onTouchesEnded, this);
+    listener->onTouchesBegan = CC_CALLBACK_2(Counting::onTouchesBegan, this);
+    listener->onTouchesMoved = CC_CALLBACK_2(Counting::onTouchesMoved, this);
+    listener->onTouchesEnded = CC_CALLBACK_2(Counting::onTouchesEnded, this);
+    listener->onTouchesCancelled = CC_CALLBACK_2(Counting::onTouchesEnded, this);
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
     //scheduleUpdate();
     
     TouchOn();
     return true;
 }
-#pragma mark- "UPDATE Method"
-void counting::update(float delta)
-{
-}
-void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event)
+void Counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event)
 {
     Touch *touch=(Touch*)(touches[0]);
     cocos2d::Point Scenelocation=touch->getLocation();
@@ -157,8 +109,8 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
         if(spriteAnsOptionBox[i]->getBoundingBox().containsPoint(location))
         {
             playSounds("tap.mp3");
-            unschedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark));
-            unschedule(SEL_SCHEDULE(&counting::idealEffectAnsOption));
+            unschedule(SEL_SCHEDULE(&Counting::scaleEffectQuesMark));
+            unschedule(SEL_SCHEDULE(&Counting::idealEffectAnsOptions));
 
             lblFinalAns->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, 0.8),EaseBackOut::create(ScaleTo::create(0.4, 1)), NULL)));
             spriteAnsOptionBox[i]->setLocalZOrder(5);
@@ -183,27 +135,22 @@ void counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
             spriteObjects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
             }),NULL));
             
-            scheduleOnce(SEL_SCHEDULE(&counting::resetTapCount), 5);
+            scheduleOnce(SEL_SCHEDULE(&Counting::resetTapCount), 5);
         }
     }
 }
-void counting::onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event)
+void Counting::onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event)
 {
     Touch *touch=(Touch*)(touches[0]);
     cocos2d::Point Scenelocation=touch->getLocation();
     cocos2d::Point location=this->convertToNodeSpace(Scenelocation);
-    
-//    spriteObjects[tmp]->setPosition(location);
-    //prtcl->setPosition(location);
-    
-   // spriteSlideDoor[tmp]->setPosition(location);
-    
+        
     if(whichOptionDrag!=0 && isMoved==true)
     {
         spriteAnsOptionBox[whichOptionDrag]->setPosition(Vec2(location.x, location.y+50));
     }
 }
-void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2d::Event *event)
+void Counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2d::Event *event)
 {
     Touch *touch=(Touch*)(touches[0]);
     cocos2d::Point Scenelocation=touch->getLocation();
@@ -211,7 +158,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
     
     if(whichOptionDrag!=0 && isMoved==true)
     {
-        schedule(SEL_SCHEDULE(&counting::scaleEffectQuesMark),5, -1, 0);
+        schedule(SEL_SCHEDULE(&Counting::scaleEffectQuesMark),5, -1, 0);
         lblFinalAns->stopAllActions();
         lblFinalAns->setPosition(PosFinalAns);
         lblFinalAns->setScale(1,1);
@@ -219,7 +166,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         
         if(spriteAnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(spriteBox->getBoundingBox()) && spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
         {
-            unschedule(SEL_SCHEDULE(&counting::slideOpen));
+            unschedule(SEL_SCHEDULE(&Counting::slideOpen));
             lblEqual->stopAllActions();
             for (int i=1;i<=2;i++)
             {
@@ -238,7 +185,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         }
         else
         {
-            schedule(SEL_SCHEDULE(&counting::idealEffectAnsOption), 4.5, -1, 3);
+            schedule(SEL_SCHEDULE(&Counting::idealEffectAnsOptions), 4.5, -1, 3);
 
             isMoved=false;
             spriteBackground->runAction(DelayTime::create(0.7));
@@ -264,7 +211,7 @@ void counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
     tmp++;
 }
 #pragma  mark- "Your Methods"
-void counting::genRandomObj()
+void Counting::genRandomObj()
 {
     resetTapCount();
     phaseCmp=false;
@@ -284,7 +231,7 @@ void counting::genRandomObj()
             loopObjNo++;
             if(loopObjNo==countGenNo)
             {
-                showOptionBox();
+                showOptionBoxes();
             }
             
             }),NULL));
@@ -329,7 +276,7 @@ void counting::genRandomObj()
         spriteAnsOptionBox[i]->setTag(index);
     }
 }
-void counting::setObjScale(cocos2d::Size ScaleToSize ,Node *sprtObj)
+void Counting::setObjScale(cocos2d::Size ScaleToSize ,Node *sprtObj)
 {
     // Get the original size of the image
     Size originalSize = sprtObj->getContentSize();
@@ -346,7 +293,7 @@ void counting::setObjScale(cocos2d::Size ScaleToSize ,Node *sprtObj)
     
     CCLOG("Vec2(%0.2f)",scale);
 }
-void counting::showOptionBox()
+void Counting::showOptionBoxes()
 {
     for (int i = 1; i <=totalAnsOptions; i++)
     {
@@ -366,15 +313,15 @@ void counting::showOptionBox()
         {
             spriteSlideDoor[i]->setVisible(true);
         }
-        scheduleOnce(SEL_SCHEDULE(&counting::slideOpen), 0.5);
+        scheduleOnce(SEL_SCHEDULE(&Counting::slideOpen), 0.5);
 
 
     }), NULL));
     
-    schedule(SEL_SCHEDULE(&counting::idealEffectAnsOption), 5.5, -1, 3);
+    schedule(SEL_SCHEDULE(&Counting::idealEffectAnsOptions), 5.5, -1, 3);
 
 }
-void counting::showObjects()
+void Counting::showObjects()
 {
     for (int i=1;i<=totalCntNo;i++)
     {
@@ -385,7 +332,7 @@ void counting::showObjects()
     
     // --- Fetch size for this count number (countGenNo) ---
         std::string sizeKey = StringUtils::format("objects.objectSizes.%d", countGenNo);
-        rapidjson::Value* sizeVal = cfg->getValueForPath(sizeKey);
+        rapidjson::Value* sizeVal = cfgManager->getValueForPath(sizeKey);
         Size curObjSize(100, 100); // default
 
         if (sizeVal && sizeVal->IsObject())
@@ -401,7 +348,7 @@ void counting::showObjects()
 
     // --- Fetch positions for this count number ---
     std::string posKey = StringUtils::format("objects.positions.%d", countGenNo);
-    const rapidjson::Value& posArr = cfg->getArray(posKey);
+    const rapidjson::Value& posArr = cfgManager->getArray(posKey);
 
     if (posArr.IsArray())
     {
@@ -428,13 +375,13 @@ void counting::showObjects()
     }
 }
 #pragma mark - "Create Sprite Functions"
-void counting::createBackgroundSprite()
+void Counting::createBackgroundSprites()
 {
         
     addSprite(this, spriteBackground,"counting_Bg.png",Vec2(IPAD_WIDTH/2, IPAD_HEIGHT/2+100),Vec2(1.0, 1.0));
     
     // --- Apply clouds dynamically ---
-    const rapidjson::Value* clouds = cfg->getValueForPath("background.clouds");
+    const rapidjson::Value* clouds = cfgManager->getValueForPath("background.clouds");
     if (clouds && clouds->IsArray()) {
         for (rapidjson::SizeType i = 0; i < clouds->Size(); i++) {
             const auto& cloud = (*clouds)[i];
@@ -459,7 +406,7 @@ void counting::createBackgroundSprite()
     
     addSprite(this,spriteBoard,"boardbig.png",Vec2(693.82, -345.60 - 100),Vec2(1.2f, 1.2f));
 }
-void counting::createOwlSprite()
+void Counting::createOwlSprites()
 {
     lyrOwl = Layer::create();
     this->addChild(lyrOwl);
@@ -472,7 +419,7 @@ void counting::createOwlSprite()
     addSprite(lyrOwl, spriteCharacter,"charOwl.png",Vec2(186.38, 343.20),Vec2(1.0, 1.0));
 
 }
-Sprite* counting::addSprite(Node* parent,
+Sprite* Counting::addSprite(Node* parent,
                               Sprite*& sprite,
                                      const std::string& imageName,
                                      const Vec2& position,
@@ -495,7 +442,7 @@ Sprite* counting::addSprite(Node* parent,
 
     return sprite;
 }
-void counting::createAnsOptionSprite()
+void Counting::createAnsOptionSprites()
 {
     PosAnsBox[1]=(Vec2(482.19,232.80));
     PosAnsBox[2]=(Vec2(905.46,232.80));
@@ -517,7 +464,7 @@ void counting::createAnsOptionSprite()
         spriteAnsOptionBox[i]->addChild(lbl_AnsOption[i]);
     }
 }
-void counting::createCountingObjects()
+void Counting::createCountingObjects()
 {
     for (int i = 1; i <= totalCntNo; i++)
     {
@@ -529,18 +476,60 @@ void counting::createCountingObjects()
         addSprite(this, spriteObjects[i], imgName, OUTOFSCREEN, Vec2(0.0f, 0.0f));
     }
 }
+void Couting::createFinalAnsSprites()
+{
+    lblEqual= Label::createWithTTF("=", "ChalkBoard.ttf", 150);
+    lblEqual->setPosition(Vec2(826.09,456.00));
+    lblEqual->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
+    lblEqual->setColor(Color3B::BLACK);
+    this->addChild(lblEqual);
+    
+    addSprite(this, spriteBox, StringUtils::format("box%d.png", 1),
+              Vec2(957.16f, 476.40f),
+              Vec2(POSX * 0.9f, POSY * 0.9f));
+
+    spriteBox->setColor(Color3B::BLACK);
+    spriteBox->setOpacity(150);
+    
+    for (int i = 1; i <= 2; i++)
+    {
+        std::string imgName = StringUtils::format("purpleSlide%d.png", i);
+
+        addSprite(this, spriteSlideDoor[i], imgName,
+                  Vec2::ZERO, // position will be set below
+                  Vec2(POSX * 0.9f, POSY * 0.9f));
+
+        spriteSlideDoor[i]->setVisible(false);
+    }
+    spriteSlideDoor[1]->setAnchorPoint(Vec2(0, 0.5));
+    spriteSlideDoor[2]->setAnchorPoint(Vec2(1, 0.5));
+    spriteSlideDoor[1]->setPosition(Vec2(883.81,476.40));
+    spriteSlideDoor[2]->setPosition(Vec2(1031.71,476.40));
+
+    PosFinalAns=Vec2(spriteBox->getContentSize().width/2*POSX, spriteBox->getContentSize().height/2*POSY-20);
+
+    lblFinalAns= Label::createWithTTF("?", "ChalkBoard.ttf", 140);
+    lblFinalAns->setPosition(PosFinalAns);
+    lblFinalAns->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
+    lblFinalAns->setColor(Color3B::YELLOW);
+    spriteBox->addChild(lblFinalAns);
+    
+    lblEqual->setVisible(false);
+    spriteBox->setVisible(false);
+
+}
 #pragma mark - "Effects Functions"
-void counting::entryEffect()
+void Counting::entryEffect()
 {
     spriteBoard->runAction(Sequence::create((MoveTo::create(0.5,Vec2(693.82,345.60))), NULL));
     
     lyrOwl->runAction(Sequence::create((DelayTime::create(2),EaseBackOut::create(MoveTo::create(1,Vec2(-50,0)))), NULL));
     
-    scheduleOnce(SEL_SCHEDULE(&counting::genRandomObj), 0.9);
-    scheduleOnce(SEL_SCHEDULE(&counting::EntrySound), 1.2);
+    scheduleOnce(SEL_SCHEDULE(&Counting::genRandomObj), 0.9);
+    scheduleOnce(SEL_SCHEDULE(&Counting::EntrySound), 1.2);
 
 }
-void counting::scaleEffectQuesMark()
+void Counting::scaleEffectQuesMark()
 {
     auto jump = JumpBy::create(0.8f, Vec2::ZERO, 50, 1);
     auto scaleUp = ScaleTo::create(0.1f, 1.2f);
@@ -550,14 +539,14 @@ void counting::scaleEffectQuesMark()
     auto fullSeq = Sequence::create(ScaleTo::create(0.0,0.6),jump, bounce,  nullptr);
     lblFinalAns->runAction(fullSeq);
 }
-void counting::idealEffectObj()
+void Counting::idealEffectObjs()
 {
     for (int i=1;i<=countGenNo;i++)
     {
         spriteObjects[i]->runAction(Sequence::create(RotateTo::create(0.8, 3),RotateTo::create(0.8, -3),NULL));
     }
 }
-void counting::idealEffectAnsOption()
+void Counting::idealEffectAnsOptions()
 {
     for (int i=1;i<=totalAnsOptions;i++)
     {
@@ -567,7 +556,7 @@ void counting::idealEffectAnsOption()
     }
     spriteAnsOptionBox[RandomHelper::random_int(1, 3)]->runAction(Sequence::create(ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1),ScaleTo::create(0.2, 0.9),ScaleTo::create(0.2, 1), NULL));
 }
-void counting::eyeBlinkAnim()
+void Counting::eyeBlinkAnim()
 {
     if(!spriteCharacter)
     {
@@ -577,9 +566,9 @@ void counting::eyeBlinkAnim()
     
     //====Eye Blink Animation====//
   
-        float blinkDelay = cfg->getFloat("character.eyeBlink.blinkDelay", 0.2f);
-        float minInterval = cfg->getFloat("character.eyeBlink.minInterval", 3.0f);
-        float maxInterval = cfg->getFloat("character.eyeBlink.maxInterval", 10.0f);
+        float blinkDelay = cfgManager->getFloat("character.eyeBlink.blinkDelay", 0.2f);
+        float minInterval = cfgManager->getFloat("character.eyeBlink.minInterval", 3.0f);
+        float maxInterval = cfgManager->getFloat("character.eyeBlink.maxInterval", 10.0f);
     
         blinkDelay *= cocos2d::RandomHelper::random_real(0.8f, 1.2f);
     
@@ -600,11 +589,11 @@ void counting::eyeBlinkAnim()
         }, nextBlink, "blink_schedule");
 
 }
-void counting::slideOpen()
+void Counting::slideOpen()
 {
-    float openDuration = cfg->getFloat("slideDoor.openDuration", 0.5f);
-    float minDelay = cfg->getFloat("slideDoor.minDelayBetween", 1.0f);
-    float maxDelay = cfg->getFloat("slideDoor.maxDelayBetween", 2.5f);
+    float openDuration = cfgManager->getFloat("slideDoor.openDuration", 0.5f);
+    float minDelay = cfgManager->getFloat("slideDoor.minDelayBetween", 1.0f);
+    float maxDelay = cfgManager->getFloat("slideDoor.maxDelayBetween", 2.5f);
     float randomDelay = cocos2d::RandomHelper::random_real(minDelay, maxDelay);
     
     isSlideOpen = true;
@@ -624,11 +613,11 @@ void counting::slideOpen()
                                               ));
 }
 
-void counting::slideClose()
+void Counting::slideClose()
 {
-    float closeDuration = cfg->getFloat("slideDoor.closeDuration", 0.5f);
-    float minDelay = cfg->getFloat("slideDoor.minDelayBetween", 1.0f);
-    float maxDelay = cfg->getFloat("slideDoor.maxDelayBetween", 2.5f);
+    float closeDuration = cfgManager->getFloat("slideDoor.closeDuration", 0.5f);
+    float minDelay = cfgManager->getFloat("slideDoor.minDelayBetween", 1.0f);
+    float maxDelay = cfgManager->getFloat("slideDoor.maxDelayBetween", 2.5f);
     float randomDelay = cocos2d::RandomHelper::random_real(minDelay, maxDelay);
     
     isSlideOpen = false;
@@ -647,7 +636,7 @@ void counting::slideClose()
                                               nullptr
                                               ));
 }
-void counting::resetTapCount()
+void Counting::resetTapCount()
 {
     tapObj=0;
 
@@ -656,10 +645,10 @@ void counting::resetTapCount()
         spriteObjects[i]->setOpacity(255);
     }
 }
-void counting::countingEffect()
+void Counting::countingEffect()
 {
     phaseCmp=true;
-    unschedule(SEL_SCHEDULE(&counting::idealEffectObj));
+    unschedule(SEL_SCHEDULE(&Counting::idealEffectObjs));
     
     loopObjNo=0;
     float scaleRatio=spriteObjects[1]->getScaleX();
@@ -674,13 +663,13 @@ void counting::countingEffect()
             {
                 showParticle(Vec2(691.42,753.60), true, 1.0 ,0.5,20);
 
-                scheduleOnce(SEL_SCHEDULE(&counting::genRandomObj), 2.2);
+                scheduleOnce(SEL_SCHEDULE(&Counting::genRandomObj), 2.2);
             }
             
         }),NULL));
     }
 }
-void counting::showParticle(const Point &particlePos , bool isLevelEnd ,float delayDuration, int durationPlay, int zOrderNo)
+void Counting::showParticle(const Point &particlePos , bool isLevelEnd ,float delayDuration, int durationPlay, int zOrderNo)
 {
 
     // Schedule a one-time callback after delay
@@ -705,36 +694,32 @@ void counting::showParticle(const Point &particlePos , bool isLevelEnd ,float de
     ));
 }
 
-void counting::playAppreciationSound()
+void Counting::playAppreciationSound()
 {
     std::string strSoundAppreciation = __String::createWithFormat("appreciation_%d.mp3",RandomHelper::random_int(2, 6))->getCString();
     playSounds(strSoundAppreciation);
 }
-void counting::playSounds(std::string soundFile)
+void Counting::playSounds(std::string soundFile)
 {
     SimpleAudioEngine::getInstance()->playEffect(soundFile.c_str());
 }
-void counting::EntrySound()
+void Counting::EntrySound()
 {
     playSounds("CountTitleSnd.mp3");
 }
-void counting::TouchOn()
+void Counting::TouchOn()
 {
     this->getEventDispatcher()->setEnabled(true);
 }
-void counting::TouchOff()
+void Counting::TouchOff()
 {
     this->getEventDispatcher()->setEnabled(false);
 }
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-void counting::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
+void Counting::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 {
     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
     {
-      //  SimpleAudioEngine::getInstance()->stopAllEffects();
-      //  this->unscheduleUpdate();
-      //  unscheduleAllCallbacks();
-      //  Director::getInstance()->replaceScene(TransitionFade::create(0.5, LevelScreen::createScene()));
     }
 }
 #endif

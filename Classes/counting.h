@@ -1,13 +1,13 @@
 //
-//  counting.h
+//  Counting.h
 //  MyGame
 //
 //  Created by Mac on 30/10/25.
 //
 //
 
-#ifndef counting_h
-#define counting_h
+#ifndef Counting_h
+#define Counting_h
 
 #define IPAD_WIDTH                      1366
 #define IPAD_HEIGHT                     768
@@ -21,7 +21,7 @@
 #include "ConfigManager.h"
 using namespace CocosDenshion;
 using namespace cocos2d;
-class counting : public cocos2d::Layer
+class Counting : public cocos2d::Layer
 {
 public:
     static cocos2d::Scene* createScene();
@@ -32,7 +32,7 @@ public:
     cocos2d::Point locPoint;
     float POSX,POSY,POSXY;
     
-    ConfigManager* cfg;
+    ConfigManager* cfgManager;
     
     int tmp;
     int countGenNo;
@@ -77,10 +77,11 @@ public:
     void showObjects();
     
     //=====Create Sprite Functions=====//
-    void createBackgroundSprite();
-    void createOwlSprite();
-    void createAnsOptionSprite();
+    void createBackgroundSprites();
+    void createOwlSprites();
+    void createAnsOptionSprites();
     void createCountingObjects();
+    void createFinalAnsSprites();
     
     void createSpriteFromConfig(const rapidjson::Value& spr);
     cocos2d::Sprite* addSprite(
@@ -94,11 +95,11 @@ public:
     //=====Effects Functions=====//
     
     void entryEffect();
-    void showOptionBox();
+    void showOptionBoxes();
     void scaleEffectQuesMark();
     
-    void idealEffectObj();
-    void idealEffectAnsOption();
+    void idealEffectObjs();
+    void idealEffectAnsOptions();
     
     void eyeBlinkAnim();
     
@@ -109,15 +110,11 @@ public:
     void countingEffect();
     
     void playAppreciationSound();
-    
-    void resetTapCount();
     void playSounds(std::string soundFile);
     void showParticle(const Point &particlePos , bool isLevelEnd ,float delayDuration, int durationPlay, int zOrderNo);
+    void resetTapCount();
 
     virtual bool init();
-    virtual void update(float delta);
-    // a selector callback
-    void menuCloseCallback(cocos2d::Ref* pSender);
     //----------------------------------------------------END-------------------------------------------------------//
     virtual void onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
     virtual void onTouchesMoved(const std::vector<cocos2d::Touch*>& touches,cocos2d::Event *event);
@@ -126,7 +123,7 @@ public:
     void EntrySound();
     void TouchOn();
     void TouchOff();
-    CREATE_FUNC(counting);
+    CREATE_FUNC(Counting);
 };
 
-#endif /* counting_h */
+#endif /* Counting_h */
