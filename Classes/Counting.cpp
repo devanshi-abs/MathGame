@@ -38,13 +38,6 @@ bool Counting::init()
         return false;
     }
     
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    auto pKeybackListener = EventListenerKeyboard::create();
-    pKeybackListener->onKeyReleased = CC_CALLBACK_2(Counting::onKeyReleased, this);
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(pKeybackListener, this);
-#endif
-    Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    cocos2d::Size winsize=Director::getInstance()->getWinSize();
     POSX=1;//winsize.width/IPAD_WIDTH;
     POSY=1;//winsize.height/IPAD_HEIGHT;
     POSXY=1;//(POSX+POSY)/2;
@@ -124,7 +117,8 @@ void Counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
     
     for (int i = 1; i <= countGenNo; i++)
     {
-        if(spriteObjects[i]->getBoundingBox().containsPoint(location) && phaseCmp==false && spriteObjects[i]->getOpacity()==255)
+        if(spriteObjects[i]->getBoundingBox().containsPoint(location) && phaseCmp==false
+           && spriteObjects[i]->getOpacity()==255)
         {
             tapObj++;
             float scaleRatio=spriteObjects[1]->getScaleX();
@@ -132,8 +126,7 @@ void Counting::onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos
             spriteObjects[i]->setOpacity(180);
             playSounds(__String::createWithFormat("%d.mp3",tapObj)->getCString());
 
-            spriteObjects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),CallFunc::create([this]{
-            }),NULL));
+            spriteObjects[i]->runAction(Sequence::create(ScaleTo::create(0.2, scaleRatio+0.2),ScaleTo::create(0.2, scaleRatio),NULL));
             
             scheduleOnce(SEL_SCHEDULE(&Counting::resetTapCount), 5);
         }
@@ -163,7 +156,6 @@ void Counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
         lblFinalAns->setPosition(PosFinalAns);
         lblFinalAns->setScale(1,1);
         
-        
         if(spriteAnsOptionBox[whichOptionDrag]->getBoundingBox().intersectsRect(spriteBox->getBoundingBox()) && spriteAnsOptionBox[whichOptionDrag]->getTag()==countGenNo && isSlideOpen==true)
         {
             unschedule(SEL_SCHEDULE(&Counting::slideOpen));
@@ -181,7 +173,9 @@ void Counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
 
             spriteBackground->runAction(DelayTime::create(3));
             
-            spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, spriteBox->getPosition(), 100, 1),ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),CallFunc::create([this]{countingEffect();}),NULL));
+            spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(JumpTo::create(0.5, spriteBox->getPosition(), 100, 1),
+                    ScaleTo::create(0.1,1.05),ScaleTo::create(0.1,1.0),DelayTime::create(1.0),
+                    CallFunc::create([this]{countingEffect();}),NULL));
         }
         else
         {
@@ -195,18 +189,18 @@ void Counting::onTouchesEnded(const std::vector<cocos2d::Touch*>& touches,cocos2
             {
                 playSounds("whoosh.mp3");
 
-                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
+                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),
+                    CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
             else
             {
                 playSounds("tapWrong.mp3");
 
-                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),RotateTo::create(0.1,8),RotateTo::create(0.1,-8),RotateTo::create(0.1,8),RotateTo::create(0.1,0),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
+                spriteAnsOptionBox[whichOptionDrag]->runAction(Sequence::create(EaseBackIn::create(MoveTo::create(0.2, PosTouch)),RotateTo::create(0.1,8),
+                    RotateTo::create(0.1,-8),RotateTo::create(0.1,8),RotateTo::create(0.1,0),CallFunc::create([this]{whichOptionDrag=0;}),NULL));
             }
         }
     }
-    
-    //CCLOG("Vec2(%0.2f,%0.2f)",location.x,location.y);
 
     tmp++;
 }
@@ -297,7 +291,8 @@ void Counting::showOptionBoxes()
 {
     for (int i = 1; i <=totalAnsOptions; i++)
     {
-        spriteAnsOptionBox[i]->runAction(Sequence::create(DelayTime::create(0.3),DelayTime::create(i * 0.2f),EaseBackOut::create(ScaleTo::create(0.5, 0.9)),NULL));
+        spriteAnsOptionBox[i]->runAction(Sequence::create(DelayTime::create(0.3),
+        DelayTime::create(i * 0.2f),EaseBackOut::create(ScaleTo::create(0.5, 0.9)),NULL));
     }
     
     spriteBackground->runAction(Sequence::create(DelayTime::create(1),CallFunc::create([this]{
@@ -371,13 +366,12 @@ void Counting::showObjects()
     }
     else
     {
-        CCLOG("⚠️ Missing positions for countGenNo = %d in config!", countGenNo);
+        CCLOG("Missing positions for countGenNo = %d in config!", countGenNo);
     }
 }
 #pragma mark - "Create Sprite Functions"
 void Counting::createBackgroundSprites()
 {
-        
     addSprite(this, spriteBackground,"counting_Bg.png",Vec2(IPAD_WIDTH/2, IPAD_HEIGHT/2+100),Vec2(1.0, 1.0));
     
     // --- Apply clouds dynamically ---
@@ -456,7 +450,6 @@ void Counting::createAnsOptionSprites()
         // Ensure it's added on the correct Z-order
         spriteAnsOptionBox[i]->setLocalZOrder(3);
 
-        
         lbl_AnsOption[i]= Label::createWithTTF("10", "ChalkBoard.ttf", 120);
         lbl_AnsOption[i]->setAlignment(TextHAlignment::CENTER, TextVAlignment::CENTER);
         lbl_AnsOption[i]->setColor(Color3B::BLACK);//GRAY
@@ -476,7 +469,7 @@ void Counting::createCountingObjects()
         addSprite(this, spriteObjects[i], imgName, OUTOFSCREEN, Vec2(0.0f, 0.0f));
     }
 }
-void Couting::createFinalAnsSprites()
+void Counting::createFinalAnsSprites()
 {
     lblEqual= Label::createWithTTF("=", "ChalkBoard.ttf", 150);
     lblEqual->setPosition(Vec2(826.09,456.00));
@@ -715,11 +708,3 @@ void Counting::TouchOff()
 {
     this->getEventDispatcher()->setEnabled(false);
 }
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-void Counting::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
-{
-    if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
-    {
-    }
-}
-#endif

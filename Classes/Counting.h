@@ -26,9 +26,6 @@ class Counting : public cocos2d::Layer
 public:
     static cocos2d::Scene* createScene();
     
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event);
-#endif
     cocos2d::Point locPoint;
     float POSX,POSY,POSXY;
     
